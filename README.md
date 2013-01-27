@@ -17,7 +17,6 @@ Lets get relevant stats for the GNU website:
 
     $ chmod a+x wush  # make the shell script executable
     $ ./wush http://www.gnu.org
-    
     webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
@@ -28,12 +27,11 @@ Lets get relevant stats for the GNU website:
         Timing      onDomContentLoaded: 0s, onLoad: 2.76s
         Errors      4xx: 0, 5xx: 0, JS: 0
 
-As you can see, it provides nicely formatted summary about the site.
+As you can see, it provides a nicely formatted summary about the site.
 
 Now, lets get a complete list of URL's accessed by the browser when loading up the site:
 
     $ ./wush -u http://www.gnu.org
-    
     webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
@@ -51,10 +49,9 @@ Now, lets get a complete list of URL's accessed by the browser when loading up t
         text/css  1821  http://www.gnu.org/mini.css
         text/css  1666  http://www.gnu.org/print.css
 
-This is great but sometimes we are only interested in resources from the same domain. No problem!
+As you can see, the mimetype, HTTP response code and the URL to the resource is provided. Occasionally, we are only interested in resources from the same domain. This can be achieved as follows:
 
     $ ./wush -u -d http://www.gnu.org
-    
     webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
@@ -79,7 +76,6 @@ There is a bundled shell script that can automatically take this list of URL's a
     $ ./optimize.sh http://www.themalaysianinsider.com
 
     Web Optimization Tool 1.0 (c) 2013 Ditesh Gathani <ditesh@gathani.org>
-
     Running webutil ... done.
     Checking for PNG files ... found
     Downloading PNG files ... done.
@@ -110,6 +106,7 @@ A few things to note here:
 * [optipng](http://optipng.sourceforge.net/) is used to optimize PNG files
 * [jpegtran](http://jpegclub.org/jpegtran/) is used to optimize JPEG files
 * [optipng](http://optipng.sourceforge.net/) is used to optimize GIF files by converting them to PNG only if the GIF is not animated and the resulting filesize is smaller
-* All downloaded resources are available in /tmp/webutil/js/pre (in the case of JavaScript, for example - replace js with css/png/jpg)
-* All optimized resources are available in /tmp/webutil/js/post (in the case of JavaScript, for example - replace js with css/png/jpg)
+* Bandwidth calculations are based on the 1-10TB pricing for the Singaporean AWS region
+* Downloaded resources are available in `/tmp/webutil/js/pre` (replace js with css/png/jpg)
+* Optimized resources are available in `/tmp/webutil/js/post` (replace js with css/png/jpg)
 
