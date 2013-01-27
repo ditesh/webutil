@@ -8,7 +8,7 @@ INSTALL
 
 1. Install [phantomjs 1.8.0](http://phantomjs.org/download.html) or greater
 2. Get the code: `git clone git://github.com/ditesh/webutil.js`
-3. Run it: `sh wush www.slashdot.org`
+3. Run it: `sh wush http://www.gnu.org`
 
 What can it do?
 ---------------
