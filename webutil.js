@@ -1,220 +1,267 @@
-var page = require("webpage").create();
-var system = require('system');
-var skip = false,
-    flags = {
-        "print-urls": false,
-        "print-redirects": false,
-        "print-http-errors": false,
-        "print-javascript-errors": false,
-        "screenshot": false,
-        "print-breakdown": false,
-        "screenshot-path": "/tmp/screenshot.png",
-        "sort-by": 0,
-        "silent": false
-    },
-    startTime = Date.now(),
-    jsErrors = [],
-    prefix = "\t\t";
+var  fs = require('fs');
 
-if (system.args.length === 1) {
+/*
+ * Monkey patch fs
+ * Liberally ripped from casperjs
+ */
+if (!fs.hasOwnProperty('pathJoin')) {
+    fs.pathJoin = function pathJoin() {
+        return Array.prototype.join.call(arguments, this.separator);
+    };
+}
 
-    printHeader();
-    printHelp();
-    phantom.exit();
+if (!fs.hasOwnProperty('basename')) {
+    fs.basename = function basename(path) {
+        return path.replace(/.*\//, '');
+    };
+}
 
-} else {
+if (!fs.hasOwnProperty('dirname')) {
+    fs.dirname = function dirname(path) {
+        return path.replace(/\\/g, '/').replace(/\/[^\/]*$/, '');
+    };
+}
 
-    system.args.forEach(function (arg, i) {
 
-        if (skip === true) skip = false;
-        else if (arg === "-h") {
+/**
+ * Patching require() from casperjs
+ *
+ */
+var require = (function _require(require) {
 
-            printHelp();
-            phantom.exit();
+    var phantomBuiltins = ['fs', 'webpage', 'webserver', 'system'];
+    var phantomRequire = phantom.__orig__require = require;
+    var requireCache = {};
+    var requireDir = fs.absolute(fs.workingDirectory);
 
-        } else if (arg === "-ua") {
+    return function _require(path) {
+        var i, dir, paths = [],
+        fileGuesses = [],
+        file,
+        module = {
+            exports: {}
+        };
 
-            skip = true;
+    if (phantomBuiltins.indexOf(path) !== -1) return phantomRequire(path);
 
-            if (i+1 >= system.args.length) {
+    if (path[0] === '.') {
+        paths.push.apply(paths, [
+            fs.absolute(path),
+            fs.absolute(fs.pathJoin(requireDir, path))
+            ]);
+    } else if (path[0] === '/') paths.push(path);
+    else {
 
-                printHelp();
-                phantom.exit();
+        dir = fs.absolute(requireDir);
+        while (dir !== '' && dir.lastIndexOf(':') !== dir.length - 1) {
+            // nodejs compatibility
+            paths.push(fs.pathJoin(dir, 'node_modules', path));
+            dir = fs.dirname(dir);
+        }
 
-            }
+        paths.push(fs.pathJoin(requireDir, 'lib', path));
+        paths.push(fs.pathJoin(requireDir, 'modules', path));
 
-            var path = system.args[i+1];
+    }
 
-            if (path.charAt(0) === "-") {
+    paths.forEach(function _forEach(testPath) {
 
-                printHelp();
-                phantom.exit();
-
-            }
-
-            page.settings.userAgent = system.args[i+1]
-
-        } else if (arg === "-z") {
-            
-            skip = true;
-            flags["screenshot"] = true;
-
-            if (i+1 >= system.args.length) {
-
-                printHelp();
-                phantom.exit();
-
-            }
-
-            var path = system.args[i+1];
-
-            if (path.charAt(0) === "-") {
-
-                printHelp();
-                phantom.exit();
-
-            }
-
-            flags["screenshot-path"] = system.args[i+1];
-
-        } else if (arg === "-s") {
-
-            prefix = "";
-            flags["silent"] = true;
-
-        } else if (arg === "-sa") flags["sort-by"] |= 2;
-        else if (arg === "-sd") flags["sort-by"] |= 4;
-        else if (arg === "-sc") flags["sort-by"] |= 8;
-        else if (arg === "-he") flags["print-http-errors"] = true;
-        else if (arg === "-je") flags["print-javascript-errors"] = true;
-        else if (arg === "-u") flags["print-urls"] = true;
-        else if (arg === "-b") flags["print-breakdown"] = true;
-        else if (arg === "-r") flags["print-redirects"] = true;
-        else url = arg.trim();
-
+        fileGuesses.push.apply(fileGuesses, [
+            testPath,
+            testPath + '.js',
+            testPath + '.coffee',
+            fs.pathJoin(testPath, 'index.js'),
+            fs.pathJoin(testPath, 'index.coffee'),
+            fs.pathJoin(testPath, 'lib', fs.basename(testPath) + '.js'),
+            fs.pathJoin(testPath, 'lib', fs.basename(testPath) + '.coffee')
+        ]);
     });
-}
 
-var testflag = 0;
-if (flags["print-urls"] === true) testflag += 1;
-if (flags["print-breakdown"] === true) testflag += 1;
-if (flags["print-http-errors"] === true) testflag += 1;
-if (flags["print-javascript-errors"] === true) testflag += 1;
+    file = null;
+    for (i = 0; i < fileGuesses.length && !file; ++i) if (fs.isFile(fileGuesses[i])) file = fileGuesses[i];
 
-if (url.length === 0 || (flags["silent"] === true && testflag > 2)) {
+    if (!file) throw new Error("Couldn't find module " + path);
+    if (file in requireCache) return requireCache[file].exports;
 
-    flags["silent"] = false;
+    var scriptCode = fs.read(file);
+    var fn = new Function('__file__', 'require', 'module', 'exports', scriptCode);
 
-    printHeader();
-    printHelp();
-    phantom.exit();
+    try { fn(file, _require, module, module.exports); } catch (e) { throw error; }
 
-}
+    requireCache[file] = module;
+    return module.exports;
 
-printHeader();
+    };
+})(require);
 
-var assets = [];
+var print = require("./print"), helper = require("./helper"),
+    page = require("webpage").create(), cli = require("./cli").parse(),
+    startTime = Date.now(), assets = [], flags = cli["flags"],
+    errors = {"4xx": [], "5xx": [], "js": []}, 
+    summary = {
+        "counts": {
+            "resources": {
+                "HTML": 0,
+                "CSS": 0,
+                "JS": 0,
+                "images": 0,
+                "others": 0,
+            },
+            "compression": {
+                "compressed": 0,
+                "not-compressed": 0,
+            },
+            "encodings": {
+                "UTF-8": 0,
+                "ISO-8859-1": 0,
+                "others": 0,
+            }
+        },
+        "total-size": 0,
+        "load-time": 0,
+        "on-dom-content-loaded": 0
+    };
 
-page.onError = function(msg, trace) {
-    jsErrors.push(msg);
-}
+print.header();
 
-page.open(url, function(status) {
+page.open(cli["url"], function(status) {
 
     if (status === "success") {
 
-        var totalSize = 0,
-            types = {},
-            urls = [],
-            redirects = [],
-            httpErrors = [],
-            breakdown = {},
-            loadTime = Math.round((Date.now() - startTime)/10)/100;
+        var har = {}, types = {}, urls = [], url = helper.parse_url(cli["url"]),
+            redirects = [], breakdown = {};
+
+        summary["load-time"] = Math.round((Date.now() - startTime)/10)/100;
 
         for (var i in assets) {
 
-            if (assets[i]["stage"] === "start") {
+            var asset = assets[i];
+            var assetURL = asset["url"];
+            var statusCode = assets[i]["status"];
 
-                var type = assets[i]["contentType"];
-                var offset = type.indexOf(";");
-                var statusCode = assets[i]["status"];
-                if (offset > 0) type = type.substr(0, offset);
+            if (asset["stage"] === "start") {
 
-                if (statusCode >= 400) {
+                if (flags["same-domain"] === true) {
 
-                    httpErrors.push({
+                    if (helper.parse_url(assetURL)["host"] !== url["host"]) continue;
+
+                }
+
+                var type = asset["contentType"].toLowerCase();
+
+                if (statusCode >= 400 && statusCode < 500) {
+
+                    errors["4xx"].push({
+                        "url": assetURL,
                         "status-code": statusCode,
-                        "url": assets[i]["url"],
                     });
 
                 } else {
 
+                    var offset = type.indexOf(";")
+
                     urls.push({
                         
-                        "url": assets[i]["url"],
-                        "size": assets[i]["bodySize"],
-                        "content-type": type,
+                        "url": assetURL,
+                        "content-type": (offset > 0) ? type.substr(0, offset) : type,
+                        "size": asset["bodySize"],
 
                     });
 
-                    totalSize += assets[i]["bodySize"];
+                    summary["total-size"] += asset["bodySize"];
 
-                    if (assets[i]["redirectURL"] !== null) {
+                    if (asset["redirectURL"] !== null) {
                         
                         redirects.push({
-                            "status-code": assets[i]["status"],
-                            "original-url": assets[i]["url"],
-                            "new-url": assets[i]["redirectURL"],
+                            "original-url": assetURL,
+                            "status-code": asset["status"],
+                            "new-url": asset["redirectURL"],
                         });
-
                     }
 
-                    if (type === null) type = "unspecified";
-                    else if (type.trim().length === 0) type = "unspecified";
-                    else if (type.match(/gif/) !== null) type = "GIF";
-                    else if (type.match(/png/) !== null) type = "PNG";
-                    else if (type.match(/jpeg/) !== null) type = "JPG";
-                    else if (type.match(/css/) !== null) type = "CSS";
-                    else if (type.match(/html/) !== null) type = "HTML";
-                    else if (type.match(/xml/) !== null) type = "XML";
-                    else if (type.match(/plain/) !== null) type = "Text";
-                    else if (type.match(/javascript/) !== null) type = "JS";
-                    else type = "Others";
+                    if (offset > 0) {
+
+                        var charset = type.split("charset=")
+                        charset = charset[1].split(" ");
+                        charset = charset[0].toLowerCase();
+
+                        if (charset === "utf-8") summary["counts"]["encodings"]["UTF-8"] += 1;
+                        else if (charset === "iso-8859-1") summary["counts"]["encodings"]["ISO-8859-1"] += 1;
+                        else summary["counts"]["encodings"]["others"] += 1;
+
+                        type = type.substr(0, offset);
+
+                    } else summary["counts"]["encodings"]["others"] += 1;
+
+                    if (type === null) type = "unspecified", summary["counts"]["resources"]["others"] += 1;
+                    else if (type.trim().length === 0) type = "unspecified", summary["counts"]["resources"]["others"] += 1;
+                    else if (type.match(/gif/) !== null) type = "GIF", summary["counts"]["resources"]["images"] += 1;
+                    else if (type.match(/png/) !== null) type = "PNG", summary["counts"]["resources"]["images"] += 1;
+                    else if (type.match(/jpeg/) !== null) type = "JPG", summary["counts"]["resources"]["images"] += 1;
+                    else if (type.match(/css/) !== null) type = "CSS", summary["counts"]["resources"]["CSS"] += 1;
+                    else if (type.match(/html/) !== null) type = "HTML", summary["counts"]["resources"]["HTML"] += 1;
+                    else if (type.match(/xml/) !== null) type = "XML", summary["counts"]["resources"]["others"] += 1;
+                    else if (type.match(/plain/) !== null) type = "Text", summary["counts"]["resources"]["others"] += 1;
+                    else if (type.match(/javascript/) !== null) type = "JS", summary["counts"]["resources"]["JS"] += 1;
+                    else type = "Others", summary["counts"]["resources"]["others"] += 1;
 
                     if ((type in breakdown) === false) breakdown[type] = { count: 0, size: 0};
                     breakdown[type]["count"] += 1;
-                    breakdown[type]["size"] += assets[i]["bodySize"];
+                    breakdown[type]["size"] += asset["bodySize"];
+
+                    var compressed = false;
+
+                    for (var i in asset["headers"]) {
+
+                        var header = asset["headers"][i];
+                        if (header["name"] === "Content-Encoding") compressed = true;
+
+                    }
+
+                    if (compressed === true) summary["counts"]["compression"]["not-compressed"] += 1;
+                    else summary["counts"]["compression"]["compressed"] += 1;
+
+                }
+
+            } else {
+
+                if (statusCode >= 500) {
+
+                    errors["5xx"].push({
+                        "url": assetURL,
+                        "status-code": statusCode,
+                    });
 
                 }
             }
         }
 
-        printResults({
-            "summary": {
-                "total-size": totalSize,
-                "load-time": loadTime,
-            },
+        print.results({
+            "har": har,
             "urls": urls,
+            "summary": summary,
             "redirects": redirects,
             "breakdown": breakdown,
-            "http-errors": httpErrors,
-            "javascript-errors": jsErrors
+            "4xx-errors": errors["4xx"],
+            "5xx-errors": errors["5xx"],
+            "http-errors": errors["4xx"].concat(errors["5xx"]),
+            "js-errors": errors["js"]
         });
 
         if (flags["screenshot"] === true) {
 
             var retval= page.render(flags["screenshot-path"]);
-            if  (retval === FALSE) printError("Unable to save screenshot to " + flags["screenshot-path"]);
+            if  (retval === false) print.error("Unable to save screenshot to " + flags["screenshot-path"]);
 
         }
 
-        printFooter();
+        print.footer();
         phantom.exit();
 
     } else {
 
-        printError("Cannot connect to " + url);
-        phantom.exit();
+        print.error("Cannot connect to " + cli["url"]);
+        phantom.exit(1);
 
     }
 });
@@ -223,176 +270,24 @@ page.onResourceReceived = function(res) {
     assets.push(res);
 };
 
-function printHeader() {
-    if (flags["silent"] === false) console.log("webutil.js 1.0 (c) 2012 Ditesh Gathani <ditesh@gathani.org>");
-}
+page.onError = function(msg, trace) {
+    errors["js"].push(msg);
+};
 
-function printFooter() {
-    if (flags["silent"] === false) console.log("");
-}
+page.onInitialized = function() {
+    page.evaluate(function(domContentLoadedMsg) {
+        document.addEventListener("DOMContentLoaded", function() {
+              window.callPhantom("DOMContentLoaded");
+        }, false);
+    });
+};
 
-function printResults(results) {
+page.onCallback = function(data) {
 
-    if (flags["silent"] !== true) {
-
-        console.log("");
-        console.log("[Summary]");
-        console.log(prefix + "Transferred\t" + formatWeight(results["summary"]["total-size"]));
-        console.log(prefix + "Redirects\t" + results["redirects"].length);
-        console.log(prefix + "Load time\t" + results["summary"]["load-time"] + " seconds");
-        console.log(prefix + "JS errors\t" + results["javascript-errors"].length);
-        console.log(prefix + "HTTP errors\t" + results["http-errors"].length);
-
+    if (data === "DOMContentLoaded") {
+        summary["on-dom-content-loaded"] = Math.round((Date.now() - startTime)/10)/100;
     }
+};
 
-    if (flags["print-breakdown"] === true) {
 
-        if (flags["silent"] !== true) {
 
-            console.log("");
-            console.log("[Breakdown]");
-
-        }
-
-        for (var i in results["breakdown"]) {
-
-            var size = formatWeight(results["breakdown"][i]["size"]);
-            var count = results["breakdown"][i]["count"];
-
-            if (count === 1) console.log(prefix + i + "\t\t  " + count + " file \t"+ size);
-            else {
-                
-                if (count < 10) console.log(prefix + i + "\t\t  " + count + " files\t"+ size);
-                else if (count < 100) console.log(prefix + i + "\t\t " + count + " files\t"+ size);
-                else console.log(prefix + i+ "\t\t" + count + " files\t"+ size);
-
-            }
-        }
-    }
-
-    if (flags["print-urls"] === true) {
-
-        if (flags["silent"] !== true) {
-
-            console.log("");
-            console.log("[urls]");
-
-        }
-
-        results["urls"].sort(function(a, b) {
-
-            if (flags["sort-by"] === 2) return (a["size"] < b["size"] ? -1 : 1);
-            else if (flags["sort-by"] === 4) return (a["size"] > b["size"] ? -1 : 1);
-            else if (flags["sort-by"] > 4) {
-                
-                if (a["content-type"] < b["content-type"]) return -1;
-                else if (a["content-type"] === b["content-type"]) {
-                    
-                    if (flags["sort-by"] === 10) return (a["size"] < b["size"] ? -1 : 1);
-                    else if (flags["sort-by"] === 12) return (a["size"] > b["size"] ? -1 : 1);
-                    else return 0;
-
-                } else return 1;
-
-            }
-        });
-
-        results["urls"].forEach(function(arg, i) {
-            console.log(prefix + arg["content-type"] + "\t" + arg["size"] + "\t" + arg["url"]);
-        });
-    }
-
-    if (flags["print-javascript-errors"] === true) {
-
-        if (flags["silent"] !== true) {
-
-            console.log("");
-            console.log("[JavaScript errors]");
-
-        }
-
-        results["javascript-errors"].forEach(function(arg, i) {
-            console.log(prefix + arg["url"]);
-        });
-
-        if (results["javascript-errors"].length === 0) console.log(prefix + "None");
-
-    }
-
-    if (flags["print-http-errors"] === true) {
-
-        if (flags["silent"] !== true) {
-
-            console.log("");
-            console.log("[HTTP errors]");
-
-        }
-
-        if (results["http-errors"].length === 0) console.log(prefix + "None");
-        else {
-
-            results["http-errors"].sort(function(a, b) {
-                return (a["status-code"] < b["status-code"] ? -1 : 1);
-            });
-
-            results["http-errors"].forEach(function(arg, i) {
-                console.log(prefix + arg["status-code"] + "\t" + arg["url"]);
-            });
-        }
-    }
-
-    if (flags["print-redirects"] === true) {
-
-        if (flags["silent"] !== true) {
-
-            console.log("");
-            console.log("[Redirects]");
-
-        }
-
-        if (results["redirects"].length === 0) console.log(prefix + "None");
-        else {
-
-            results["redirects"].sort(function(a, b) {
-                return (a["status-code"] < b["status-code"] ? -1 : 1);
-            });
-
-            results["redirects"].forEach(function(arg, i) {
-                console.log(prefix + arg["status-code"] + "\t" + arg["original-url"] + "\t" + arg["new-url"]);
-            });
-
-        }
-    }
-
-    function formatWeight(weight) {
-        return sizestr = weight + " bytes (" + Math.round(weight/1024) + " KB)";
-    }
-}
-
-function printError(msg) {
-    console.log("Error: " + msg);
-    console.log("");
-}
-
-function printHelp() {
-
-    console.log("");
-    console.log("Usage: phantomjs webutil.js [options] url");
-    console.log("\t-b: print weight breakdown by network resources");
-    console.log("\t-r: print all redirects");
-    console.log("\t-s: print only relevant data (with no summary), works with either -b OR -u specified (and not both)");
-    console.log("\t-u: print all retrieved URL's");
-    console.log("\t-z: specify a screenshot path");
-    console.log("\t-he: print HTTP errors (status code >= 400)");
-    console.log("\t-je: print JavaScript errors");
-    console.log("\t-ua: specify a user agent");
-    console.log("\t-sc: sort by Content Type (only applicable for -b or -u)");
-    console.log("\t-sa: sort by size ascending (only applicable for -b or -u)");
-    console.log("\t-sd: sort by size descending (only applicable for -b or -u)");
-    console.log("");
-
-}
-
-function debug(obj) {
-    console.log(JSON.stringify(obj));
-}

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+command -v phantomjs >/dev/null 2>&1 || { echo >&2 "I require phantomjs but it's not installed.  Aborting."; }
+phantomjs webutil.js $@
