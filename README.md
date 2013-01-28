@@ -91,19 +91,33 @@ There is a bundled shell script that can automatically take this list of URL's a
     Downloading JS files ... done.
     Optimizing JS files ... done.
 
-    Results:
-    JPG: 15KB 4.9KB 10.1KB 67.33%
-    PNG: 38KB 35KB 3KB 7.89%
-    CSS: 143KB 110KB 33KB 23.07%
-    JS: 65KB 63KB 2KB 3.07%
-    Total: 261KB 212.9KB 48.1KB 18.42%
-    AWS bandwidth savings: USD$ 8.71 (1 million visits/month)
+    [*] RESULTS (with no compression):
 
-The columns are: pre-optimization, post-optimization, size difference and percentage difference.
+    RESOURCE  AS-IS  OPTIMIZED  DIFF(KB)  DIFF(%)
+    --------  -----  ---------  -------   -------
+    JPG       15KB   4.9KB      10.1KB    67.33%
+    PNG       38KB   35KB       3KB       7.89%
+    CSS       143KB  110KB      33KB      23.07%
+    JS        65KB   63KB       2KB       3.07%
+    TOTAL     261KB  212.9KB    48.1KB    18.42%
 
-A few things to note here:
+    AWS bandwidth savings: USD$ 8.71 per million visits
 
-* [UglifyJS2](https://github.com/mishoo/UglifyJS2) is used to optimize JavaScript files
+    [*] RESULTS (with gzip compression)
+
+    RESOURCE  AS-IS   OPTIMIZED  DIFF(KB)  DIFF(%)
+    --------  -----   ---------  -------   -------
+    JPG       7.7KB   4.4KB      3.3KB     42.85%
+    PNG       38KB    35KB       3KB       7.89%
+    CSS       30KB    25KB       5KB       16.66%
+    JS        21KB    20KB       1KB       4.76%
+    TOTAL     96.7KB  84.4KB     12.3KB    12.71%
+
+    AWS bandwidth savings: USD$ 2.22 per million visits
+
+It provides comparitive analysis with and without compression enabled. A few things to note here:
+
+* [UglifyJS2](https://github.com/mishoo/UglifyJS2) is used to minify, optimize and compress JavaScript files
 * [csstidy](http://csstidy.sourceforge.net/) is used to optimize CSS files
 * [optipng](http://optipng.sourceforge.net/) is used to optimize PNG files
 * [jpegtran](http://jpegclub.org/jpegtran/) is used to optimize JPEG files

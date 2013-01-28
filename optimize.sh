@@ -188,7 +188,7 @@ if [ -f "$TMPDIR/jsfiles.txt" ]; then
     echo "done."
 
     echo -n "Optimizing JS files ... "
-    for i in `ls $TMPDIR/js/pre/* | xargs -n1 basename`; do `uglifyjs "$TMPDIR/js/pre/$i" -o "$TMPDIR/js/post/$i"`; done
+    for i in `ls $TMPDIR/js/pre/* | xargs -n1 basename`; do `uglifyjs "$TMPDIR/js/pre/$i" -o "$TMPDIR/js/post/$i -c"`; done
     echo "done."
 
     JS=true
