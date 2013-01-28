@@ -182,8 +182,14 @@ page.open(cli["url"], function(status) {
                     if (offset > 0) {
 
                         var charset = type.split("charset=")
-                        charset = charset[1].split(" ");
-                        charset = charset[0].toLowerCase();
+
+                        if (charset.length != 2) charset = "others";
+                        else {
+
+                            charset = charset[1].split(" ");
+                            charset = charset[0].toLowerCase();
+
+                        }
 
                         if (charset === "utf-8") summary["counts"]["encodings"]["UTF-8"] += 1;
                         else if (charset === "iso-8859-1") summary["counts"]["encodings"]["ISO-8859-1"] += 1;
@@ -271,6 +277,8 @@ page.onResourceReceived = function(res) {
 };
 
 page.onError = function(msg, trace) {
+    console.log(msg);
+    console.log(JSON.stringify(trace));
     errors["js"].push(msg);
 };
 

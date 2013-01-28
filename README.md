@@ -99,6 +99,8 @@ There is a bundled shell script that can automatically take this list of URL's a
     Total: 261KB 212.9KB 48.1KB 18.42%
     AWS bandwidth savings: USD$ 8.71 (1 million visits/month)
 
+The columns are: pre-optimization, post-optimization, size difference and percentage difference.
+
 A few things to note here:
 
 * [UglifyJS2](https://github.com/mishoo/UglifyJS2) is used to optimize JavaScript files
