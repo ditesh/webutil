@@ -60,6 +60,7 @@ if [ -f "$TMPDIR/pngfiles.txt" ]; then
     echo "done."
 
     PNG=true
+    PNGCOUNT=`ls $TMPDIR/png/pre | wc -l`
     PNGPRE=`du -bh $TMPDIR/png/pre | awk '{ print $1 }' | cut -d'K' -f 1`
     PNGPOST=`du -bh $TMPDIR/png/post | awk '{ print $1 }' | cut -d'K' -f 1`
     PNGDIFF=`echo "$PNGPRE-$PNGPOST" | bc | sed -E 's/^(-?)\./\10./'`
@@ -90,6 +91,7 @@ if [ -f "$TMPDIR/jpgfiles.txt" ]; then
     echo "done."
 
     JPG=true
+    JPGCOUNT=`ls $TMPDIR/jpg/pre | wc -l`
     JPGPRE=`du -bh $TMPDIR/jpg/pre | awk '{ print $1 }' | cut -d'K' -f 1`
     JPGPOST=`du -bh $TMPDIR/jpg/post | awk '{ print $1 }' | cut -d'K' -f 1`
     JPGDIFF=`echo "$JPGPRE-$JPGPOST" | bc | sed -E 's/^(-?)\./\10./'`
@@ -131,6 +133,7 @@ if [ -f "$TMPDIR/giffiles.txt" ]; then
     echo "done."
 
     GIF=true
+    GIFCOUNT=`ls $TMPDIR/gif/pre | wc -l`
     GIFPRE=`du -bh $TMPDIR/gif/pre | awk '{ print $1 }' | cut -d'K' -f 1`
     GIFPOST=`du -bh $TMPDIR/gif/post | awk '{ print $1 }' | cut -d'K' -f 1`
     GIFDIFF=`echo "$GIFPRE-$GIFPOST" | bc | sed -E 's/^(-?)\./\10./'`
@@ -161,6 +164,7 @@ if [ -f "$TMPDIR/cssfiles.txt" ]; then
     echo "done."
 
     CSS=true
+    CSSCOUNT=`ls $TMPDIR/css/pre | wc -l`
     CSSPRE=`du -bh $TMPDIR/css/pre | awk '{ print $1 }' | cut -d'K' -f 1`
     CSSPOST=`du -bh $TMPDIR/css/post | awk '{ print $1 }' | cut -d'K' -f 1`
     CSSDIFF=`echo "$CSSPRE-$CSSPOST" | bc | sed -E 's/^(-?)\./\10./'`
@@ -192,6 +196,7 @@ if [ -f "$TMPDIR/jsfiles.txt" ]; then
     echo "done."
 
     JS=true
+    JSCOUNT=`ls $TMPDIR/js/pre | wc -l`
     JSPRE=`du -bh $TMPDIR/js/pre | awk '{ print $1 }' | cut -d'K' -f 1`
     JSPOST=`du -bh $TMPDIR/js/post | awk '{ print $1 }' | cut -d'K' -f 1`
     JSDIFF=`echo "$JSPRE-$JSPOST" | bc | sed -E 's/^(-?)\./\10./'`
@@ -213,14 +218,15 @@ echo
 echo "[*] RESULTS (with no compression):"
 echo
 
-OUTPUT="RESOURCE AS-IS OPTIMIZED DIFF(KB) DIFF(%)\n"
+OUTPUT="RESOURCE COUNT AS-IS OPTIMIZED DIFF(KB) DIFF(%)\n"
 OUTPUT=$OUTPUT"-------- ----- --------- ------- -------\n"
-if $GIF; then OUTPUT=$OUTPUT"GIF ${GIFPRE}KB ${GIFPOST}KB ${GIFDIFF}KB ${GIFPER}%\n"; fi
-if $JPG; then OUTPUT=$OUTPUT"JPG ${JPGPRE}KB ${JPGPOST}KB ${JPGDIFF}KB ${JPGPER}%\n"; fi
-if $PNG; then OUTPUT=$OUTPUT"PNG ${PNGPRE}KB ${PNGPOST}KB ${PNGDIFF}KB ${PNGPER}%\n"; fi
-if $CSS; then OUTPUT=$OUTPUT"CSS ${CSSPRE}KB ${CSSPOST}KB ${CSSDIFF}KB ${CSSPER}%\n"; fi
-if $JS; then OUTPUT=$OUTPUT"JS ${JSPRE}KB ${JSPOST}KB ${JSDIFF}KB ${JSPER}%\n"; fi
+if $GIF; then OUTPUT=$OUTPUT"GIF ${GIFCOUNT} ${GIFPRE}KB ${GIFPOST}KB ${GIFDIFF}KB ${GIFPER}%\n"; fi
+if $JPG; then OUTPUT=$OUTPUT"JPG ${JPGCOUNT} ${JPGPRE}KB ${JPGPOST}KB ${JPGDIFF}KB ${JPGPER}%\n"; fi
+if $PNG; then OUTPUT=$OUTPUT"PNG ${PNGCOUNT} ${PNGPRE}KB ${PNGPOST}KB ${PNGDIFF}KB ${PNGPER}%\n"; fi
+if $CSS; then OUTPUT=$OUTPUT"CSS ${CSSCOUNT} ${CSSPRE}KB ${CSSPOST}KB ${CSSDIFF}KB ${CSSPER}%\n"; fi
+if $JS; then OUTPUT=$OUTPUT"JS ${JSCOUNT} ${JSPRE}KB ${JSPOST}KB ${JSDIFF}KB ${JSPER}%\n"; fi
 
+TOTALCOUNT=`echo "${GIFCOUNT-0} + ${PNGCOUNT-0} + ${JPGCOUNT-0} + ${CSSCOUNT-0} + ${JSCOUNT-0}" | bc`
 TOTALPRE=`echo "scale=2;${GIFPRE-0} + ${PNGPRE-0}+ ${JPGPRE-0} + ${CSSPRE-0} + ${JSPRE-0}" | bc | sed -E 's/^(-?)\./\10./'`
 TOTALPOST=`echo "scale=2;${GIFPOST-0} + ${PNGPOST-0} + ${JPGPOST-0} + ${CSSPOST-0} + ${JSPOST-0}" | bc | sed -E 's/^(-?)\./\10./'`
 TOTALDIFF=`echo "scale=2;${GIFDIFF-0} + ${PNGDIFF-0} + ${JPGDIFF-0} + ${CSSDIFF-0} + ${JSDIFF-0}" | bc | sed -E 's/^(-?)\./\10./'`
@@ -231,7 +237,7 @@ else TOTALPER="0"
 fi
 
 COST=`echo "scale=2; $TOTALDIFF * 1000000 * 0.19 / 1048576" | bc | sed -E 's/^(-?)\./\10./'`
-OUTPUT=$OUTPUT"TOTAL ${TOTALPRE}KB ${TOTALPOST}KB ${TOTALDIFF}KB ${TOTALPER}%"
+OUTPUT=$OUTPUT"TOTAL ${TOTALCOUNT} ${TOTALPRE}KB ${TOTALPOST}KB ${TOTALDIFF}KB ${TOTALPER}%"
 
 echo -e $OUTPUT | column -t
 echo
@@ -241,13 +247,13 @@ echo
 echo "[*] RESULTS (with gzip compression)"
 echo
 
-OUTPUT="RESOURCE AS-IS OPTIMIZED DIFF(KB) DIFF(%)\n"
-OUTPUT=$OUTPUT"-------- ----- --------- ------- -------\n"
-if $GIF; then OUTPUT=$OUTPUT"GIF ${GIFPRE_COMPRESSED}KB ${GIFPOST_COMPRESSED}KB ${GIFDIFF_COMPRESSED}KB ${GIFPER_COMPRESSED}%\n"; fi
-if $JPG; then OUTPUT=$OUTPUT"JPG ${JPGPRE_COMPRESSED}KB ${JPGPOST_COMPRESSED}KB ${JPGDIFF_COMPRESSED}KB ${JPGPER_COMPRESSED}%\n"; fi
-if $PNG; then OUTPUT=$OUTPUT"PNG ${PNGPRE_COMPRESSED}KB ${PNGPOST_COMPRESSED}KB ${PNGDIFF_COMPRESSED}KB ${PNGPER_COMPRESSED}%\n"; fi
-if $CSS; then OUTPUT=$OUTPUT"CSS ${CSSPRE_COMPRESSED}KB ${CSSPOST_COMPRESSED}KB ${CSSDIFF_COMPRESSED}KB ${CSSPER_COMPRESSED}%\n"; fi
-if $JS; then OUTPUT=$OUTPUT"JS ${JSPRE_COMPRESSED}KB ${JSPOST_COMPRESSED}KB ${JSDIFF_COMPRESSED}KB ${JSPER_COMPRESSED}%\n"; fi
+OUTPUT="RESOURCE COUNT AS-IS OPTIMIZED DIFF(KB) DIFF(%)\n"
+OUTPUT=$OUTPUT"-------- ----- ----- --------- ------- -------\n"
+if $GIF; then OUTPUT=$OUTPUT"GIF ${GIFCOUNT} ${GIFPRE_COMPRESSED}KB ${GIFPOST_COMPRESSED}KB ${GIFDIFF_COMPRESSED}KB ${GIFPER_COMPRESSED}%\n"; fi
+if $JPG; then OUTPUT=$OUTPUT"JPG ${JPGCOUNT} ${JPGPRE_COMPRESSED}KB ${JPGPOST_COMPRESSED}KB ${JPGDIFF_COMPRESSED}KB ${JPGPER_COMPRESSED}%\n"; fi
+if $PNG; then OUTPUT=$OUTPUT"PNG ${PNGCOUNT} ${PNGPRE_COMPRESSED}KB ${PNGPOST_COMPRESSED}KB ${PNGDIFF_COMPRESSED}KB ${PNGPER_COMPRESSED}%\n"; fi
+if $CSS; then OUTPUT=$OUTPUT"CSS ${CSSCOUNT} ${CSSPRE_COMPRESSED}KB ${CSSPOST_COMPRESSED}KB ${CSSDIFF_COMPRESSED}KB ${CSSPER_COMPRESSED}%\n"; fi
+if $JS; then OUTPUT=$OUTPUT"JS ${JSCOUNT} ${JSPRE_COMPRESSED}KB ${JSPOST_COMPRESSED}KB ${JSDIFF_COMPRESSED}KB ${JSPER_COMPRESSED}%\n"; fi
 
 TOTALPRE_COMPRESSED=`echo "scale=2;${GIFPRE_COMPRESSED-0} + ${PNGPRE_COMPRESSED-0}+ ${JPGPRE_COMPRESSED-0} + ${CSSPRE_COMPRESSED-0} + ${JSPRE_COMPRESSED-0}" | bc | sed -E 's/^(-?)\./\10./'`
 TOTALPOST_COMPRESSED=`echo "scale=2;${GIFPOST_COMPRESSED-0} + ${PNGPOST_COMPRESSED-0} + ${JPGPOST_COMPRESSED-0} + ${CSSPOST_COMPRESSED-0} + ${JSPOST_COMPRESSED-0}" | bc | sed -E 's/^(-?)\./\10./'`
@@ -259,7 +265,7 @@ else TOTALPER_COMPRESSED="0"
 fi
 
 COST_COMPRESSED=`echo "scale=2; $TOTALDIFF_COMPRESSED * 1000000 * 0.19 / 1048576" | bc | sed -E 's/^(-?)\./\10./'`
-OUTPUT=$OUTPUT"TOTAL ${TOTALPRE_COMPRESSED}KB ${TOTALPOST_COMPRESSED}KB ${TOTALDIFF_COMPRESSED}KB ${TOTALPER_COMPRESSED}%"
+OUTPUT=$OUTPUT"TOTAL ${TOTALCOUNT} ${TOTALPRE_COMPRESSED}KB ${TOTALPOST_COMPRESSED}KB ${TOTALDIFF_COMPRESSED}KB ${TOTALPER_COMPRESSED}%"
 
 echo -e $OUTPUT | column -t
 echo
