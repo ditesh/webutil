@@ -277,8 +277,6 @@ page.onResourceReceived = function(res) {
 };
 
 page.onError = function(msg, trace) {
-    console.log(msg);
-    console.log(JSON.stringify(trace));
     errors["js"].push(msg);
 };
 
