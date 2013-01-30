@@ -21,10 +21,22 @@ echo
 echo -n "Running webutil ... "
 OUTPUT=`phantomjs ./webutil.js -d -u -s $@`
 
-if [ "$?" -ne "0" ] ; then
-    echo "unable to connect";
-    echo
-    exit 1
+if [ "$?" -ne "0" ] ; then echo "unable to connect";
+echo exit 1
+fi
+
+if $(echo $@ | grep -q "\-ua ipad"); then
+    USERAGENT="Mozilla/5.0(iPad; U; CPU iPhone OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B314 Safari/531.21.10";
+elif $(echo $@ | grep -q "\-ua iphone"); then
+    USERAGENT="Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543a Safari/419.3";
+elif $(echo $@ | grep -q "\-ua android"); then
+    USERAGENT="Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30";
+elif $(echo $@ | grep -q "\-ua firefox"); then
+    USERAGENT="Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:15.0) Gecko/20100101 Firefox/15.0.1"
+elif $(echo $@ | grep -q "\-ua ie"); then
+    USERAGENT="Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
+else
+    USERAGENT="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1309.0 Safari/537.17";
 fi
 
 OLDIFS=$IFS
@@ -52,7 +64,7 @@ if [ -f "$TMPDIR/pngfiles.txt" ]; then
 
     echo "found"
     echo -n "Downloading PNG files ... "
-    `wget -q -P "$TMPDIR/png/pre" --input-file="$TMPDIR/pngfiles.txt"`
+    `wget -q --user-agent="$USERAGENT" -P "$TMPDIR/png/pre" --input-file="$TMPDIR/pngfiles.txt"`
     echo "done."
 
     echo -n "Optimizing PNG files ... "
@@ -83,7 +95,7 @@ if [ -f "$TMPDIR/jpgfiles.txt" ]; then
 
     echo "found."
     echo -n "Downloading JPG files ... "
-    `wget -q -P "$TMPDIR/jpg/pre" --input-file="$TMPDIR/jpgfiles.txt"`
+    `wget -q --user-agent $USERAGENT -q -P "$TMPDIR/jpg/pre" --input-file="$TMPDIR/jpgfiles.txt"`
     echo "done."
 
     echo -n "Optimizing JPG files ... "
@@ -114,7 +126,7 @@ if [ -f "$TMPDIR/giffiles.txt" ]; then
 
     echo "found."
     echo -n "Downloading GIF files ... "
-    `wget -q -P "$TMPDIR/gif/pre" --input-file="$TMPDIR/giffiles.txt"`
+    `wget -q --user-agent $USERAGENT -q -P "$TMPDIR/gif/pre" --input-file="$TMPDIR/giffiles.txt"`
     echo "done."
 
     echo -n "Optimizing GIF files ... "
@@ -156,7 +168,7 @@ if [ -f "$TMPDIR/cssfiles.txt" ]; then
 
     echo "found."
     echo -n "Downloading CSS files ... "
-    `wget -q -P "$TMPDIR/css/pre" --input-file="$TMPDIR/cssfiles.txt"`
+    `wget -q --user-agent $USERAGENT -q -P "$TMPDIR/css/pre" --input-file="$TMPDIR/cssfiles.txt"`
     echo "done."
 
     echo -n "Optimizing CSS files ... "
@@ -188,7 +200,7 @@ if [ -f "$TMPDIR/jsfiles.txt" ]; then
 
     echo "found."
     echo -n "Downloading JS files ... "
-    `wget -q -P "$TMPDIR/js/pre" --input-file="$TMPDIR/jsfiles.txt"`
+    `wget -q --user-agent $USERAGENT -q -P "$TMPDIR/js/pre" --input-file="$TMPDIR/jsfiles.txt"`
     echo "done."
 
     echo -n "Optimizing JS files ... "
