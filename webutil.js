@@ -45,7 +45,6 @@ var callback = function(status) {
     if (status === "success") {
 
         var har = {}, types = {}, urls = [], url = cli["url-parts"], redirects = [], breakdown = {};
-        console.log(JSON.stringify(flags));
 
         summary["load-time"] = Math.round((Date.now() - startTime)/10)/100;
 
@@ -69,7 +68,7 @@ var callback = function(status) {
 
                         var matchurl = flags["equivalent-domains"][d].toLowerCase();
 
-                        if (url["host"].indexOf(matchurl) >= 0) {
+                        if (helper.parse_url(assetURL)["host"].indexOf(matchurl) >= 0) {
 
                             nomatches = false;
                             break;
@@ -77,6 +76,7 @@ var callback = function(status) {
                         }
                     }
 
+                    console.log(url["host"], nomatches);
                     if (nomatches === true) continue;
                 }
 

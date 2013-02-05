@@ -155,7 +155,7 @@ exports.parse = function() {
 
                 }
 
-                flags["same-domain-names"] = arg.split(",");
+                flags["equivalent-domains"] = arg.split(",");
 
             } else if (arg === "-s") {
 
@@ -207,6 +207,8 @@ exports.parse = function() {
     if (("scheme" in url) === false) url["scheme"] = "http";
     
     url["host"] = url["host"].toLowerCase();
+
+    if (flags["equivalent-domains"].length > 0) flags["equivalent-domains"].push(url["host"]);
 
     return {
         "url": url["scheme"] + "://" + url["host"] + url["path"],
