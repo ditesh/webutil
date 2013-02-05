@@ -1,98 +1,4 @@
-var  fs = require('fs');
-
-/*
- * Monkey patch fs
- * Liberally ripped from casperjs
- */
-if (!fs.hasOwnProperty('pathJoin')) {
-    fs.pathJoin = function pathJoin() {
-        return Array.prototype.join.call(arguments, this.separator);
-    };
-}
-
-if (!fs.hasOwnProperty('basename')) {
-    fs.basename = function basename(path) {
-        return path.replace(/.*\//, '');
-    };
-}
-
-if (!fs.hasOwnProperty('dirname')) {
-    fs.dirname = function dirname(path) {
-        return path.replace(/\\/g, '/').replace(/\/[^\/]*$/, '');
-    };
-}
-
-
-/**
- * Patching require() from casperjs
- *
- */
-var require = (function _require(require) {
-
-    var phantomBuiltins = ['fs', 'webpage', 'webserver', 'system'];
-    var phantomRequire = phantom.__orig__require = require;
-    var requireCache = {};
-    var requireDir = fs.absolute(fs.workingDirectory);
-
-    return function _require(path) {
-        var i, dir, paths = [],
-        fileGuesses = [],
-        file,
-        module = {
-            exports: {}
-        };
-
-    if (phantomBuiltins.indexOf(path) !== -1) return phantomRequire(path);
-
-    if (path[0] === '.') {
-        paths.push.apply(paths, [
-            fs.absolute(path),
-            fs.absolute(fs.pathJoin(requireDir, path))
-            ]);
-    } else if (path[0] === '/') paths.push(path);
-    else {
-
-        dir = fs.absolute(requireDir);
-        while (dir !== '' && dir.lastIndexOf(':') !== dir.length - 1) {
-            // nodejs compatibility
-            paths.push(fs.pathJoin(dir, 'node_modules', path));
-            dir = fs.dirname(dir);
-        }
-
-        paths.push(fs.pathJoin(requireDir, 'lib', path));
-        paths.push(fs.pathJoin(requireDir, 'modules', path));
-
-    }
-
-    paths.forEach(function _forEach(testPath) {
-
-        fileGuesses.push.apply(fileGuesses, [
-            testPath,
-            testPath + '.js',
-            testPath + '.coffee',
-            fs.pathJoin(testPath, 'index.js'),
-            fs.pathJoin(testPath, 'index.coffee'),
-            fs.pathJoin(testPath, 'lib', fs.basename(testPath) + '.js'),
-            fs.pathJoin(testPath, 'lib', fs.basename(testPath) + '.coffee')
-        ]);
-    });
-
-    file = null;
-    for (i = 0; i < fileGuesses.length && !file; ++i) if (fs.isFile(fileGuesses[i])) file = fileGuesses[i];
-
-    if (!file) throw new Error("Couldn't find module " + path);
-    if (file in requireCache) return requireCache[file].exports;
-
-    var scriptCode = fs.read(file);
-    var fn = new Function('__file__', 'require', 'module', 'exports', scriptCode);
-
-    try { fn(file, _require, module, module.exports); } catch (e) { throw error; }
-
-    requireCache[file] = module;
-    return module.exports;
-
-    };
-})(require);
+var fs = require('fs');
 
 var print = require("./print"), helper = require("./helper"),
     page = require("webpage").create(), cli = require("./cli").parse(),
@@ -124,12 +30,22 @@ var print = require("./print"), helper = require("./helper"),
 
 print.header();
 
-page.open(cli["url"], function(status) {
+var count = 0;
+
+var opencb = function(status) {
+
+    count += 1;
+    if (status === "success" && count > 1) callback(status);
+    else page.open(cli["url"], opencb(status));
+
+};
+
+var callback = function(status) {
 
     if (status === "success") {
 
-        var har = {}, types = {}, urls = [], url = helper.parse_url(cli["url"]),
-            redirects = [], breakdown = {};
+        var har = {}, types = {}, urls = [], url = cli["url-parts"], redirects = [], breakdown = {};
+        console.log(JSON.stringify(flags));
 
         summary["load-time"] = Math.round((Date.now() - startTime)/10)/100;
 
@@ -145,6 +61,23 @@ page.open(cli["url"], function(status) {
 
                     if (helper.parse_url(assetURL)["host"] !== url["host"]) continue;
 
+                } else if (flags["equivalent-domains"].length > 0) {
+
+                    var nomatches = true;
+
+                    for (var d in flags["equivalent-domains"]) {
+
+                        var matchurl = flags["equivalent-domains"][d].toLowerCase();
+
+                        if (url["host"].indexOf(matchurl) >= 0) {
+
+                            nomatches = false;
+                            break;
+
+                        }
+                    }
+
+                    if (nomatches === true) continue;
                 }
 
                 var type = asset["contentType"].toLowerCase();
@@ -270,13 +203,16 @@ page.open(cli["url"], function(status) {
         phantom.exit(1);
 
     }
-});
+};
+
+page.open(cli["url"], callback);
 
 page.onResourceReceived = function(res) {
     assets.push(res);
 };
 
 page.onError = function(msg, trace) {
+    console.log(msg);
     errors["js"].push(msg);
 };
 
@@ -294,6 +230,3 @@ page.onCallback = function(data) {
         summary["on-dom-content-loaded"] = Math.round((Date.now() - startTime)/10)/100;
     }
 };
-
-
-

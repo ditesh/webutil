@@ -7,10 +7,11 @@ exports.parse = function() {
         "prefix": "\t\t",
         "sort-by": 0,
         "silent": false,
+        "print-har": false,
         "screenshot": false,
         "print-urls": false,
         "same-domain": false,
-        "print-har": false,
+        "equivalent-domains": [],
         "print-breakdown": false,
         "print-redirects": false,
         "print-http-errors": false,
@@ -134,6 +135,28 @@ exports.parse = function() {
 
                 page.settings.password = arg;
 
+            } else if (arg === "-dd") {
+
+                skip = true;
+
+                if (i+1 >= system.args.length) {
+
+                    print.help();
+                    phantom.exit(1);
+
+                }
+
+                var arg = system.args[i+1];
+
+                if (arg.charAt(0) === "-") {
+
+                    print.help();
+                    phantom.exit(1);
+
+                }
+
+                flags["same-domain-names"] = arg.split(",");
+
             } else if (arg === "-s") {
 
                 flags["prefix"] = "";
@@ -149,7 +172,7 @@ exports.parse = function() {
             else if (arg === "-b") flags["print-breakdown"] = true;
             else if (arg === "-r") flags["print-redirects"] = true;
             else if (arg === "-d") flags["same-domain"] = true;
-            else if (i > 0) url = arg.trim();
+            else if (arg.charAt(0) !== "-" && i > 0) url = arg.trim();
 
         });
     }
@@ -174,12 +197,20 @@ exports.parse = function() {
     var url = helper.parse_url(url);
 
     if (url["path"] === undefined) url["path"] = "";
+    if (("host" in url) === false) {
+        
+        url["host"] = url["path"];
+        url["path"] = "";
 
-    if (("host" in url) === false) url = "http://" +url["path"];
-    else url = url["scheme"] + "://" + url["host"] + url["path"];
+    }
+
+    if (("scheme" in url) === false) url["scheme"] = "http";
+    
+    url["host"] = url["host"].toLowerCase();
 
     return {
-        "url": url,
+        "url": url["scheme"] + "://" + url["host"] + url["path"],
+        "url-parts": url,
         "flags": flags
     };
 }
