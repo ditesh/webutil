@@ -76,7 +76,6 @@ var callback = function(status) {
                         }
                     }
 
-                    console.log(url["host"], nomatches);
                     if (nomatches === true) continue;
                 }
 
