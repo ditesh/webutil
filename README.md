@@ -1,6 +1,6 @@
 # webutil.js
 
-webutil.js is a [phantomjs](http://phantomjs.org)-based tool to analyze websites. It can provide a summary of key metrics for the page in addition to being able to automatically run a size analysis on all assets.
+webutil.js is a [phantomjs](http://phantomjs.org)-based tool to analyze and optimize websites. It provides key metrics for a site, runs size and caching analysis and provides an automatic asset optimization feature.
 
 ## INSTALL
 
@@ -56,7 +56,7 @@ Mimetype, resource size and resource URL is provided. Occasionally, we are only 
 
 Whoops, there are no URL's. As it turns out, reddit.com doesn't have any resources from the same domain. We need to rerun the command using the -dd to specify the other domains reddit.com uses.
 
-    $ ./wush -u -dd reddit reddit.com
+    $ ./wush -u -dd reddit,media reddit.com
     webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
@@ -69,7 +69,7 @@ Whoops, there are no URL's. As it turns out, reddit.com doesn't have any resourc
         image/png               9670    http://www.redditstatic.com/sprite-reddit.HLCFG7U22Hg.png
         ... snipped for brevity ...
 
-The `-dd` pulls up URL's by doing pattern matching on all hostnames (ie, does the hostname have the word reddit in it). This allows finegrained controlled of which URL's are to be included in the analysis.
+The `-dd` pulls up URL's by doing pattern matching on all hostnames (ie, in this case, hostname is matched against the words `reddit` and `media`). This allows finegrained controlled of which URL's are to be included in the analysis.
 
 The important thing to note about `-d` and `-dd` is that the numbers in the summary is reflective of the URL's analyzed.
 
@@ -89,6 +89,7 @@ There is an inbuilt facility to provide the exact same output, but after a certa
         Timing      onDomContentLoaded: 3.1s, onLoad: 3.91s
         Errors      4xx: 0, 5xx: 0, JS: 0
 
+    # Two executions
     $ ./wush -c 1 reddit.com
     webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
@@ -100,7 +101,7 @@ There is an inbuilt facility to provide the exact same output, but after a certa
         Timing      onDomContentLoaded: 1.68s, onLoad: 4.65s
         Errors      4xx: 0, 5xx: 0, JS: 0
 
-When the `-c` parameter is passed, the page is reloaded that many times. In the example above, the page is loaded normally once, then reloaded 1.
+When the `-c` parameter is passed, the page is reloaded the specified number of times. In the example above, the page is loaded once, and then reloaded one more time (reflecting the effect of passing `-c 1`).
 
 You can see the effects of caching as the number of requests, page size etc drop. This is best used with `-d` or `-dd` to exclude third party embeds.
 
@@ -151,7 +152,7 @@ There is a bundled shell script that can automatically take the URL's and attemp
 
     AWS bandwidth savings: USD$ 2.22 per million visits
 
-It provides comparitive analysis with and without compression enabled. A few things to note here:
+It provides comparative analysis with and without compression enabled. A few things to note here:
 
 * [UglifyJS2](https://github.com/mishoo/UglifyJS2) is used to minify, optimize and compress JavaScript files
 * [csstidy](http://csstidy.sourceforge.net/) is used to optimize CSS files
