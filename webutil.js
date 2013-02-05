@@ -31,12 +31,17 @@ var print = require("./print"), helper = require("./helper"),
 print.header();
 
 var count = 0;
-
-var opencb = function(status) {
+var pagecb = function(status) {
 
     count += 1;
-    if (status === "success" && count > 1) callback(status);
-    else page.open(cli["url"], opencb(status));
+    if (count > flags["cache-retries"]) callback(status);
+    else {
+
+        assets = [];
+        startTime = Date.now();
+        page.open(cli["url"], pagecb);
+
+    }
 
 };
 
@@ -45,7 +50,6 @@ var callback = function(status) {
     if (status === "success") {
 
         var har = {}, types = {}, urls = [], url = cli["url-parts"], redirects = [], breakdown = {};
-
         summary["load-time"] = Math.round((Date.now() - startTime)/10)/100;
 
         for (var i in assets) {
@@ -204,8 +208,6 @@ var callback = function(status) {
     }
 };
 
-page.open(cli["url"], callback);
-
 page.onResourceReceived = function(res) {
     assets.push(res);
 };
@@ -224,8 +226,8 @@ page.onInitialized = function() {
 };
 
 page.onCallback = function(data) {
-
-    if (data === "DOMContentLoaded") {
-        summary["on-dom-content-loaded"] = Math.round((Date.now() - startTime)/10)/100;
-    }
+    if (data === "DOMContentLoaded") summary["on-dom-content-loaded"] = Math.round((Date.now() - startTime)/10)/100;
 };
+
+
+page.open(cli["url"], pagecb);

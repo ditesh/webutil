@@ -195,6 +195,7 @@ exports.help = function() {
     console.log("");
     console.log("Usage: phantomjs webutil.js [options] url");
     console.log("\t-b: print weight breakdown by network resources");
+    console.log("\t-c: reload specified number of times (eg -c 2 loads the page 3 times)");
     console.log("\t-d: print data for resources within the same domain only (exception is load time)");
     console.log("\t-r: print all redirects");
     console.log("\t-s: print only relevant data (with no summary), works with either -b OR -u specified (and not both)");

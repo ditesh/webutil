@@ -8,6 +8,7 @@ exports.parse = function() {
         "sort-by": 0,
         "silent": false,
         "print-har": false,
+        "cache-retries": 0,
         "screenshot": false,
         "print-urls": false,
         "same-domain": false,
@@ -39,22 +40,7 @@ exports.parse = function() {
             } else if (arg === "-ua") {
 
                 skip = true;
-
-                if (i+1 >= system.args.length) {
-
-                    print.help();
-                    phantom.exit(1);
-
-                }
-
-                var arg = system.args[i+1];
-
-                if (arg.charAt(0) === "-") {
-
-                    print.help();
-                    phantom.exit(1);
-
-                }
+                arg = parseArg(i);
 
                 if (arg === "ipad") arg = "Mozilla/5.0(iPad; U; CPU iPhone OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B314 Safari/531.21.10";
                 else if (arg === "iphone") arg = "Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543a Safari/419.3";
@@ -71,22 +57,7 @@ exports.parse = function() {
             } else if (arg === "-z") {
 
                 skip = true;
-
-                if (i+1 >= system.args.length) {
-
-                    print.help();
-                    phantom.exit(1);
-
-                }
-
-                var arg = system.args[i+1];
-
-                if (arg.charAt(0) === "-") {
-
-                    print.help();
-                    phantom.exit(1);
-
-                }
+                arg = parseArg(i);
 
                 flags["screenshot"] = true;
                 flags["screenshot-path"] = arg;
@@ -94,68 +65,35 @@ exports.parse = function() {
             } else if (arg === "-username") {
 
                 skip = true;
-
-                if (i+1 >= system.args.length) {
-
-                    print.help();
-                    phantom.exit(1);
-
-                }
-
-                var arg = system.args[i+1];
-
-                if (arg.charAt(0) === "-") {
-
-                    print.help();
-                    phantom.exit(1);
-
-                }
-
+                arg = parseArg(i);
                 page.settings.userName = arg;
 
             } else if (arg === "-password") {
 
                 skip = true;
-
-                if (i+1 >= system.args.length) {
-
-                    print.help();
-                    phantom.exit(1);
-
-                }
-
-                var arg = system.args[i+1];
-
-                if (arg.charAt(0) === "-") {
-
-                    print.help();
-                    phantom.exit(1);
-
-                }
-
+                arg = parseArg(i);
                 page.settings.password = arg;
 
             } else if (arg === "-dd") {
 
                 skip = true;
-
-                if (i+1 >= system.args.length) {
-
-                    print.help();
-                    phantom.exit(1);
-
-                }
-
-                var arg = system.args[i+1];
-
-                if (arg.charAt(0) === "-") {
-
-                    print.help();
-                    phantom.exit(1);
-
-                }
-
+                arg = parseArg(i);
                 flags["equivalent-domains"] = arg.split(",");
+
+            } else if (arg === "-c") {
+
+                skip = true;
+                arg = parseArg(i);
+                var narg = parseInt(arg);
+
+                if (isNaN(narg) === true) {
+
+                    print.help();
+                    phantom.exit(1);
+
+                }
+
+                flags["cache-retries"] = narg;
 
             } else if (arg === "-s") {
 
@@ -215,4 +153,26 @@ exports.parse = function() {
         "url-parts": url,
         "flags": flags
     };
+}
+
+function parseArg(i) {
+
+    if (i+1 >= system.args.length) {
+
+        print.help();
+        phantom.exit(1);
+
+    }
+
+    var arg = system.args[i+1];
+
+    if (arg.charAt(0) === "-") {
+
+        print.help();
+        phantom.exit(1);
+
+    }
+
+    return arg;
+
 }

@@ -1,7 +1,4 @@
 #!/bin/bash
 
 command -v phantomjs >/dev/null 2>&1 || { echo >&2 "I require phantomjs but it's not installed.  Aborting."; }
-
-if $(echo $@ | grep -q "\-c "); then phantomjs --disk-cache=yes webutil.js $@
-else phantomjs --disk-cache=no webutil.js $@;
-fi
+phantomjs --disk-cache=no webutil.js $@;

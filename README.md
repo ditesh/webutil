@@ -1,76 +1,112 @@
-webutil.js
-==========
+# webutil.js
 
 webutil.js is a [phantomjs](http://phantomjs.org)-based tool to analyze websites. It can provide a summary of key metrics for the page in addition to being able to automatically run a size analysis on all assets.
 
-INSTALL
--------
+## INSTALL
 
-1. Install [phantomjs 1.8.0](http://phantomjs.org/download.html) or greater
+1. Install [phantomjs](http://phantomjs.org/download.html)
 2. Get the code: `git clone git://github.com/ditesh/webutil.js`
-3. Run it: `sh wush http://www.gnu.org`
+3. Run it: `chmod a+x wush; ./wush http://www.reddit.com`
 
-What can it do?
----------------
+## What can it do?
 
-Lets get relevant stats for the GNU website:
+Lots. Let's get relevant stats for Reddit:
 
     $ chmod a+x wush  # make the shell script executable
-    $ ./wush http://www.gnu.org
+    $ ./wush reddit.com
     webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
-        Requests    10 request(s), 55350 bytes (54 KB), 0 redirect(s)
-        Resources   HTML: 1, CSS: 4, JS: 0, images: 5, others: 0
-                    UTF-8: 0, ISO-8859-1: 0, others: 10
-                    compressed: 5, not-compressed: 5
-        Timing      onDomContentLoaded: 0s, onLoad: 2.76s
+        Requests    33 request(s), 385103 bytes (376 KB), 0 redirect(s)
+        Resources   HTML: 2, CSS: 1, JS: 4, images: 26, others: 0
+                    UTF-8: 4, ISO-8859-1: 0, others: 29
+                    compressed: 27, not-compressed: 6
+        Timing      onDomContentLoaded: 3.1s, onLoad: 3.91s
         Errors      4xx: 0, 5xx: 0, JS: 0
 
-As you can see, it provides a nicely formatted summary about the site.
+As you can see, it provides a nicely formatted summary about the site highlighting key areas.
+
+### Getting URL's
 
 Now, lets get a complete list of URL's accessed by the browser when loading up the site:
 
-    $ ./wush -u http://www.gnu.org
+    $ ./wush -u reddit.com
     webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
-        ... summary goes here ...
+        ... snipped for brevity ...
 
     [URLs]
-        text/html 20855 http://www.gnu.org/
-        text/css  6746  http://www.gnu.org/combo.css
-        image/jpeg  2494  http://www.gnu.org/graphics/t-desktop-4-small.jpg
-        image/png 469 http://www.gnu.org/feed-icon-10x10.png
-        text/css  13400 http://www.gnu.org/layout.css
-        image/png 3911  http://static.fsf.org/fsforg/graphics/Knob3.png
-        image/gif 51  http://www.gnu.org/graphics/bullet.gif
-        image/png 3937  http://www.gnu.org/graphics/topbanner.png
-        text/css  1821  http://www.gnu.org/mini.css
-        text/css  1666  http://www.gnu.org/print.css
+        text/html               115084  http://www.reddit.com/
+        text/javascript         45830   http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js
+        text/css                78617   http://www.redditstatic.com/reddit._E2WnMcei1o.css
+        application/javascript  58064   http://www.redditstatic.com/reddit.en.yRpDmsrGWVQ.js
+        ... snipped for brevity ...
 
-As you can see, the mimetype, HTTP response code and the URL to the resource is provided. Occasionally, we are only interested in resources from the same domain. This can be achieved as follows:
 
-    $ ./wush -u -d http://www.gnu.org
+Mimetype, resource size and resource URL is provided. Occasionally, we are only interested in resources from the same domain. This can be achieved by using the `-d` parameter:
+
+    $ ./wush -u -d reddit.com
     webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
-        ... summary goes here ...
+        ... snipped for brevity ...
 
     [URLs]
-        text/html 20855 http://www.gnu.org/
-        text/css  6746  http://www.gnu.org/combo.css
-        image/jpeg  2494  http://www.gnu.org/graphics/t-desktop-4-small.jpg
-        image/png 469 http://www.gnu.org/feed-icon-10x10.png
-        text/css  13400 http://www.gnu.org/layout.css
-        image/gif 51  http://www.gnu.org/graphics/bullet.gif
-        image/png 3937  http://www.gnu.org/graphics/topbanner.png
-        text/css  1821  http://www.gnu.org/mini.css
-        text/css  1666  http://www.gnu.org/print.css
 
-As you can see, the resources from `static.fsf.org` is no longer part of the list.
+Whoops, there are no URL's. As it turns out, reddit.com doesn't have any resources from the same domain. We need to rerun the command using the -dd to specify the other domains reddit.com uses.
 
-There is a bundled shell script that can automatically take this list of URL's and attempt to compress/minify all assets.
+    $ ./wush -u -dd reddit reddit.com
+    webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
+
+    [Summary]
+        ... snipped for brevity ...
+
+    [URLs]
+        text/html               114590  http://www.reddit.com/
+        text/css                78497   http://www.redditstatic.com/reddit._E2WnMcei1o.css
+        application/javascript  68817   http://www.redditstatic.com/reddit.en.yRpDmsrGWVQ.js
+        image/png               9670    http://www.redditstatic.com/sprite-reddit.HLCFG7U22Hg.png
+        ... snipped for brevity ...
+
+The `-dd` pulls up URL's by doing pattern matching on all hostnames (ie, does the hostname have the word reddit in it). This allows finegrained controlled of which URL's are to be included in the analysis.
+
+The important thing to note about `-d` and `-dd` is that the numbers in the summary is reflective of the URL's analyzed.
+
+### Caching
+
+There is an inbuilt facility to provide the exact same output, but after a certain number of reloads. This is a good way to check whether the browser is, in fact, caching the site on subsequent visits.
+
+    # First execution
+    $ ./wush reddit.com
+    webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
+
+    [Summary]
+        Requests    33 request(s), 385103 bytes (376 KB), 0 redirect(s)
+        Resources   HTML: 2, CSS: 1, JS: 4, images: 26, others: 0
+                    UTF-8: 4, ISO-8859-1: 0, others: 29
+                    compressed: 27, not-compressed: 6
+        Timing      onDomContentLoaded: 3.1s, onLoad: 3.91s
+        Errors      4xx: 0, 5xx: 0, JS: 0
+
+    $ ./wush -c 1 reddit.com
+    webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
+
+    [Summary]
+        Requests    14 request(s), 135463 bytes (132 KB), 0 redirect(s)
+        Resources   HTML: 2, CSS: 0, JS: 1, images: 11, others: 0
+                    UTF-8: 3, ISO-8859-1: 0, others: 11
+                    compressed: 12, not-compressed: 2
+        Timing      onDomContentLoaded: 1.68s, onLoad: 4.65s
+        Errors      4xx: 0, 5xx: 0, JS: 0
+
+When the `-c` parameter is passed, the page is reloaded that many times. In the example above, the page is loaded normally once, then reloaded 1.
+
+You can see the effects of caching as the number of requests, page size etc drop. This is best used with `-d` or `-dd` to exclude third party embeds.
+
+### Optimizing
+
+There is a bundled shell script that can automatically take the URL's and attempt to compress/minify CSS, JS or image assets.
 
     $ chmod a+x optimize.sh
     $ ./optimize.sh http://www.themalaysianinsider.com
