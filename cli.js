@@ -7,17 +7,16 @@ exports.parse = function() {
         "prefix": "\t\t",
         "sort-by": 0,
         "silent": false,
-        "print-har": false,
+        "har-path": "",
         "cache-retries": 0,
-        "screenshot": false,
         "print-urls": false,
         "same-domain": false,
+        "screenshot-path": "",
         "equivalent-domains": [],
         "print-breakdown": false,
         "print-redirects": false,
         "print-http-errors": false,
         "print-javascript-errors": false,
-        "screenshot-path": "/tmp/screenshot.png",
     };
 
     if (system.args.length === 1) {
@@ -58,8 +57,6 @@ exports.parse = function() {
 
                 skip = true;
                 arg = parseArg(i);
-
-                flags["screenshot"] = true;
                 flags["screenshot-path"] = arg;
 
             } else if (arg === "-username") {
@@ -79,6 +76,12 @@ exports.parse = function() {
                 skip = true;
                 arg = parseArg(i);
                 flags["equivalent-domains"] = arg.split(",");
+
+            } else if (arg === "-har") {
+
+                skip = true;
+                arg = parseArg(i);
+                flags["har-path"] = arg;
 
             } else if (arg === "-c") {
 
@@ -103,7 +106,6 @@ exports.parse = function() {
             } else if (arg === "-sa") flags["sort-by"] |= 2;
             else if (arg === "-sd") flags["sort-by"] |= 4;
             else if (arg === "-sc") flags["sort-by"] |= 8;
-//            else if (arg === "-har") flags["print-har"] = true;
             else if (arg === "-he") flags["print-http-errors"] = true;
             else if (arg === "-je") flags["print-javascript-errors"] = true;
             else if (arg === "-u") flags["print-urls"] = true;
@@ -132,24 +134,20 @@ exports.parse = function() {
     }
 
     // Auto correct protocol-less domains
-    var url = helper.parse_url(url);
+    if (url.substr(0, 4) !== "http") url = "http://"  + url;
+    url = helper.parseURL(url);
 
     if (url["path"] === undefined) url["path"] = "";
-    if (("host" in url) === false) {
-        
-        url["host"] = url["path"];
-        url["path"] = "";
-
-    }
-
-    if (("scheme" in url) === false) url["scheme"] = "http";
-    
     url["host"] = url["host"].toLowerCase();
+
+    var combinedURL  = url["scheme"] + "://" + url["host"];
+    if (url["port"] !== undefined) combinedURL = combinedURL + ":" + url["port"];
+    combinedURL = combinedURL + url["path"];
 
     if (flags["equivalent-domains"].length > 0) flags["equivalent-domains"].push(url["host"]);
 
     return {
-        "url": url["scheme"] + "://" + url["host"] + url["path"],
+        "url": combinedURL,
         "url-parts": url,
         "flags": flags
     };

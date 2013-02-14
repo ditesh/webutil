@@ -1,11 +1,11 @@
 exports.header = function() {
     if (flags !== undefined && flags["silent"] === true) return;
     console.log("webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>");
-}
+};
 
 exports.footer = function() {
     if (flags["silent"] === false) console.log("");
-}
+};
 
 exports.results = function(results) {
 
@@ -149,29 +149,6 @@ exports.results = function(results) {
         }
     }
 
-    if (flags["print-har"] === true) {
-
-        if (silent !== true) {
-
-            console.log("");
-            console.log("[HAR]");
-
-        }
-
-        if (results["redirects"].length === 0) console.log(prefix + "None");
-        else {
-
-            results["redirects"].sort(function(a, b) {
-                return (a["status-code"] < b["status-code"] ? -1 : 1);
-            });
-
-            results["redirects"].forEach(function(arg, i) {
-                console.log(prefix + arg["status-code"] + "\t" + arg["original-url"] + "\t" + arg["new-url"]);
-            });
-
-        }
-    }
-
     function formatResources(counts) {
 
         var retval = [];
@@ -183,12 +160,12 @@ exports.results = function(results) {
     function formatWeight(weight) {
         return sizestr = weight + " bytes (" + Math.round(weight/1024) + " KB)";
     }
-}
+};
 
 exports.error = function(msg) {
     console.log("Error: " + msg);
     console.log("");
-}
+};
 
 exports.help = function() {
 
@@ -207,13 +184,13 @@ exports.help = function() {
     console.log("\t-sa: sort by size ascending (only applicable for -b or -u)");
     console.log("\t-sd: sort by size descending (only applicable for -b or -u)");
     console.log("\t-ua: specify a user agent");
-//    console.log("\t-har: pretty print HAR based timeline");
+    console.log("\t-har: specify HAR filename");
     console.log("\t-username: username for HTTP authentication");
     console.log("\t-password: password for HTTP authentication");
     console.log("");
 
-}
+};
 
 exports.debug = function(obj) {
     console.log(JSON.stringify(obj));
-}
+};

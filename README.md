@@ -71,13 +71,13 @@ Whoops, there are no URL's. As it turns out, reddit.com doesn't have any resourc
 
 The `-dd` pulls up URL's by doing pattern matching on all hostnames (ie, in this case, hostname is matched against the words `reddit` and `media`). This allows finegrained controlled of which URL's are to be included in the analysis.
 
-The important thing to note about `-d` and `-dd` is that the numbers in the summary is reflective of the URL's analyzed.
+The important thing to note about `-d` and `-dd` is that the numbers in the summary are reflective of the URL's analyzed.
 
 ### Caching
 
 There is an inbuilt facility to provide the exact same output, but after a certain number of reloads. This is a good way to check whether the browser is, in fact, caching the site on subsequent visits.
 
-    # First execution
+    # One execution
     $ ./wush reddit.com
     webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
@@ -103,7 +103,7 @@ There is an inbuilt facility to provide the exact same output, but after a certa
 
 When the `-c` parameter is passed, the page is reloaded the specified number of times. In the example above, the page is loaded once, and then reloaded one more time (reflecting the effect of passing `-c 1`).
 
-You can see the effects of caching as the number of requests, page size etc drop. This is best used with `-d` or `-dd` to exclude third party embeds.
+You can see the benefits of caching as the number of requests, page size etc drop. This is best used with `-d` or `-dd` to exclude third party embeds.
 
 ### Optimizing
 
@@ -152,7 +152,7 @@ There is a bundled shell script that can automatically take the URL's and attemp
 
     AWS bandwidth savings: USD$ 2.22 per million visits
 
-It provides comparative analysis with and without compression enabled. A few things to note here:
+A few things to note here:
 
 * [UglifyJS2](https://github.com/mishoo/UglifyJS2) is used to minify, optimize and compress JavaScript files
 * [csstidy](http://csstidy.sourceforge.net/) is used to optimize CSS files

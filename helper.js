@@ -1,6 +1,6 @@
 /* Liberally ripped from phpjs.org :-)
  */
-exports.parse_url = function(str, component) {
+exports.parseURL= function(str, component) {
     // http://kevin.vanzonneveld.net
     // +      original by: Steven Levithan (http://blog.stevenlevithan.com)
     // + reimplemented by: Brett Zamir (http://brett-zamir.me)
@@ -50,4 +50,96 @@ exports.parse_url = function(str, component) {
     }
     delete uri.source;
     return uri;
+}
+
+exports.log = function(data) {
+    console.log(JSON.stringify(data));
+};
+
+exports.createHAR = function(url, title, onload, oncontentload, startTime, assets) {
+
+    var entries = [];
+
+    for (var i in assets) {
+
+        var res = assets[i],
+            req = res["request"],
+            startres = res["start-response"];
+            endres = res["end-response"],
+            reqStartTime = req["time"].getTime(),
+            resEndTime = endres["time"].getTime(),
+            bodySize = 0,
+            contentType = endres["contentType"] || "",
+            resStartTime = reqStartTime;
+
+        if (startres !== undefined) {
+            
+            bodySize = startres["bodySize"];
+            resStartTime = startres["time"].getTime();
+
+        }
+
+        entries.push({
+            "startedDateTime": req["time"].toISOString(),
+            "time": resEndTime - reqStartTime,
+            "request": {
+                "method": req["method"],
+                "url": req["url"],
+                "httpVersion": "HTTP/1.1",
+                "cookies": [],
+                "headers": req["headers"],
+                "queryString": [],
+                "headersSize": -1,
+                "bodySize": -1
+            },
+            "response": {
+                "status": endres["status"],
+                "statusText": endres["statusText"],
+                "httpVersion": "HTTP/1.1",
+                "cookies": [],
+                "headers": endres["headers"],
+                "redirectURL": "",
+                "headersSize": -1,
+                "bodySize": bodySize,
+                "content": {
+                    "size": bodySize,
+                    "mimeType": contentType
+                }
+            },
+            "cache": {},
+            "timings": {
+                "blocked": 0,
+                "dns": -1,
+                "connect": -1,
+                "send": 0,
+                "wait": resStartTime - reqStartTime,
+                "receive": resEndTime - resStartTime,
+                "ssl": -1
+            },
+            "pageref": "pageref"
+        });
+    }
+
+    return {
+        "log": {
+            "version": "1.2",
+            "creator": {
+                "name": "webutil",
+                "version": "1.0",
+                "comment": "Available https://github.com/ditesh/webutil"
+            },
+            "pages": [
+                {
+                    "startedDateTime": startTime.toISOString(),
+                    "id": "pageref",
+                    "title": title,
+                    "pageTimings": {
+                        "onContentLoad": oncontentload,
+                        "onLoad": onload,
+                    },
+                }
+            ],
+            "entries": entries,
+        }
+    };
 }
