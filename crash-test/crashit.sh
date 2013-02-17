@@ -3,13 +3,13 @@
 echo "Automated Crash Debugging Tool"
 echo
 echo "0. Removing /tmp/*.dmp*"
-rm /tmp/*.dmp*
+rm /tmp/*.dmp* > /dev/null 2>&1
 
 echo "1. Running phantomjs"
 IFS=""
 OUTPUT=`phantomjs crashit.js $@ 2>&1 | grep "PhantomJS has crashed"`
 
-FILENAME=`ls /tmp/*.dmp`
+FILENAME=`ls /tmp/*.dmp 2> /dev/null`
 
 if [ "$?" -eq "0" ]; then
 
