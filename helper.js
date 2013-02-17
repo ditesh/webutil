@@ -53,7 +53,8 @@ exports.parseURL= function(str, component) {
 }
 
 exports.log = function(data) {
-    console.log(JSON.stringify(data));
+    if (typeof data === "string") console.log(data)
+    else console.log(JSON.stringify(data));
 };
 
 exports.createHAR = function(url, title, onload, oncontentload, startTime, assets) {

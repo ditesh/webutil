@@ -4,10 +4,13 @@ var system = require("system"),
 exports.parse = function() {
 
     var flags = {
+        "debug": false,
         "prefix": "\t\t",
         "sort-by": 0,
         "silent": false,
+        "timeout": 30,
         "har-path": "",
+        "fully-loaded": 2,
         "cache-retries": 0,
         "print-urls": false,
         "same-domain": false,
@@ -19,24 +22,14 @@ exports.parse = function() {
         "print-javascript-errors": false,
     };
 
-    if (system.args.length === 1) {
-
-        print.header();
-        print.help();
-        phantom.exit(1);
-
-    } else {
+    if (system.args.length === 1) printHelp();
+    else {
 
         system.args.forEach(function (arg, i) {
 
             if (skip === true) skip = false;
-            else if (arg === "-h") {
-
-                print.header();
-                print.help();
-                phantom.exit();
-
-            } else if (arg === "-ua") {
+            else if (arg === "-h") printHelp();
+            else if (arg === "-ua") {
 
                 skip = true;
                 arg = parseArg(i);
@@ -59,6 +52,45 @@ exports.parse = function() {
                 arg = parseArg(i);
                 flags["screenshot-path"] = arg;
 
+            } else if (arg === "-c") {
+
+                skip = true;
+                arg = parseArg(i);
+
+                if (isNaN(arg) === true) printHelp();
+                flags["cache-retries"] = parseInt(arg);
+
+            } else if (arg === "-s") {
+
+                flags["prefix"] = "";
+                flags["silent"] = true;
+
+            } else if (arg === "-dd") {
+
+                skip = true;
+                arg = parseArg(i);
+                flags["equivalent-domains"] = arg.split(",");
+
+            } else if (arg === "-fl") {
+
+                skip = true;
+                arg = parseArg(i);
+                flags["fully-loaded"] = parseInt(arg);
+
+            } else if (arg === "-har") {
+
+                skip = true;
+                arg = parseArg(i);
+                flags["har-path"] = arg;
+
+            } else if (arg === "-timeout") {
+
+                skip = true;
+                arg = parseArg(i);
+
+                if (isNaN(arg) === true) printHelp();
+                flags["timeout"] = parseInt(arg);
+
             } else if (arg === "-username") {
 
                 skip = true;
@@ -71,38 +103,6 @@ exports.parse = function() {
                 arg = parseArg(i);
                 page.settings.password = arg;
 
-            } else if (arg === "-dd") {
-
-                skip = true;
-                arg = parseArg(i);
-                flags["equivalent-domains"] = arg.split(",");
-
-            } else if (arg === "-har") {
-
-                skip = true;
-                arg = parseArg(i);
-                flags["har-path"] = arg;
-
-            } else if (arg === "-c") {
-
-                skip = true;
-                arg = parseArg(i);
-                var narg = parseInt(arg);
-
-                if (isNaN(narg) === true) {
-
-                    print.help();
-                    phantom.exit(1);
-
-                }
-
-                flags["cache-retries"] = narg;
-
-            } else if (arg === "-s") {
-
-                flags["prefix"] = "";
-                flags["silent"] = true;
-
             } else if (arg === "-sa") flags["sort-by"] |= 2;
             else if (arg === "-sd") flags["sort-by"] |= 4;
             else if (arg === "-sc") flags["sort-by"] |= 8;
@@ -112,6 +112,7 @@ exports.parse = function() {
             else if (arg === "-b") flags["print-breakdown"] = true;
             else if (arg === "-r") flags["print-redirects"] = true;
             else if (arg === "-d") flags["same-domain"] = true;
+            else if (arg === "-debug") flags["debug"] = true;
             else if (arg.charAt(0) !== "-" && i > 0) url = arg.trim();
 
         });
@@ -126,10 +127,7 @@ exports.parse = function() {
     if (url === undefined || (flags["silent"] === true && testflag > 2)) {
 
         flags["silent"] = false;
-
-        print.header();
-        print.help();
-        phantom.exit(1);
+        printHelp();
 
     }
 
@@ -151,6 +149,14 @@ exports.parse = function() {
         "url-parts": url,
         "flags": flags
     };
+}
+
+function printHelp() {
+
+    print.header();
+    print.help();
+    phantom.exit(1);
+
 }
 
 function parseArg(i) {

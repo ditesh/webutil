@@ -22,8 +22,9 @@ exports.results = function(results) {
         console.log(prefix + "Resources\t" + formatResources(results["summary"]["counts"]["resources"]));
         console.log(prefix + "\t\t" + formatResources(results["summary"]["counts"]["encodings"]));
         console.log(prefix + "\t\t" + formatResources(results["summary"]["counts"]["compression"]));
-        console.log(prefix + "Timing\t\t" + "onDomContentLoaded: " +results["summary"]["on-dom-content-loaded"]
-                + "s, onLoad: " + results["summary"]["load-time"] + "s");
+        console.log(prefix + "Timing\t\t" + "first byte: " + results["summary"]["first-byte-time"]
+                + " ms, onDOMContentLoaded: " +results["summary"]["on-dom-content-loaded"]
+                + " ms, onLoad: " + results["summary"]["load-time"] + " ms");
         console.log(prefix + "Errors\t\t" + "4xx: " + results["4xx-errors"].length
                 + ", 5xx: " + results["5xx-errors"].length
                 + ", JS: " + results["js-errors"].length);
@@ -177,16 +178,19 @@ exports.help = function() {
     console.log("\t-r: print all redirects");
     console.log("\t-s: print only relevant data (with no summary), works with either -b OR -u specified (and not both)");
     console.log("\t-u: print all retrieved URL's");
-    console.log("\t-z: specify a screenshot path");
+    console.log("\t-z: specify screenshot path");
+    console.log("\t-fl: specify fully loaded state interval check (defaults to 2 second checks)");
     console.log("\t-he: print HTTP errors (status code >= 400)");
     console.log("\t-je: print JavaScript errors");
     console.log("\t-sc: sort by Content Type (only applicable for -b or -u)");
     console.log("\t-sa: sort by size ascending (only applicable for -b or -u)");
     console.log("\t-sd: sort by size descending (only applicable for -b or -u)");
-    console.log("\t-ua: specify a user agent");
+    console.log("\t-ua: specify user agent");
     console.log("\t-har: specify HAR filename");
-    console.log("\t-username: username for HTTP authentication");
-    console.log("\t-password: password for HTTP authentication");
+    console.log("\t-debug: enable debugging (default false)");
+    console.log("\t-timeout: specify timeout in seconds (default 30 seconds)");
+    console.log("\t-username: specify username for HTTP authentication");
+    console.log("\t-password: specify password for HTTP authentication");
     console.log("");
 
 };
