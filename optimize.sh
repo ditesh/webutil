@@ -99,7 +99,7 @@ if [ -f "$TMPDIR/jpgfiles.txt" ]; then
     echo "done."
 
     echo -n "Optimizing JPG files ... "
-    for i in `ls $TMPDIR/jpg/pre/* | xargs -n1 basename`; do `jpegtran -optimize -copy none "$TMPDIR/jpg/pre/$i" > "$TMPDIR/jpg/post/$i"`; done
+    for i in `ls $TMPDIR/jpg/pre/* | xargs -0 -n1 basename`; do `jpegtran -optimize -copy none "$TMPDIR/jpg/pre/$i" > "$TMPDIR/jpg/post/$i"`; done
     echo "done."
 
     JPG=true
@@ -130,7 +130,7 @@ if [ -f "$TMPDIR/giffiles.txt" ]; then
     echo "done."
 
     echo -n "Optimizing GIF files ... "
-    for i in `ls $TMPDIR/gif/pre/* | xargs -n1 basename`; do
+    for i in `ls $TMPDIR/gif/pre/* | xargs -0 -n1 basename`; do
 
         FILENAME="${i%.*}"
 
@@ -172,7 +172,7 @@ if [ -f "$TMPDIR/cssfiles.txt" ]; then
     echo "done."
 
     echo -n "Optimizing CSS files ... "
-    for i in `ls $TMPDIR/css/pre/* | xargs -n1 basename`; do `csstidy "$TMPDIR/css/pre/$i" --silent=true "$TMPDIR/css/post/$i"`; done
+    for i in `ls $TMPDIR/css/pre/* | xargs -0 -n1 basename`; do `csstidy "$TMPDIR/css/pre/$i" --silent=true "$TMPDIR/css/post/$i"`; done
     echo "done."
 
     CSS=true
@@ -204,7 +204,7 @@ if [ -f "$TMPDIR/jsfiles.txt" ]; then
     echo "done."
 
     echo -n "Optimizing JS files ... "
-    for i in `ls $TMPDIR/js/pre/* | xargs -n1 basename`; do `uglifyjs "$TMPDIR/js/pre/$i" -o "$TMPDIR/js/post/$i -c"`; done
+    for i in `ls $TMPDIR/js/pre/* | xargs -0 -n1 basename`; do `uglifyjs "$TMPDIR/js/pre/$i" -o "$TMPDIR/js/post/$i -c"`; done
     echo "done."
 
     JS=true
