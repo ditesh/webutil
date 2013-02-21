@@ -355,8 +355,12 @@ exports.Headers = function() {
 
     };
 
-    // XXX need to implement this
+    // @example: Link: </feed>; rel="alternate"
+    // @ref: http://en.wikipedia.org/wiki/List_of_HTTP_header_fields
     this.link = function(value, response) {
+
+        value = value.split(";");
+        if (value.length !== 2) return "invalid-value";
         return "ok";
 
     };
