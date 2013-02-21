@@ -44,7 +44,7 @@ exports.parse = function() {
                 else if (arg === "ie8") arg = "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0; GTB7.4; InfoPath.2; SV1; .NET CLR 3.3.69573; WOW64; en-US)";
                 else if (arg === "ie7") arg = "Mozilla/4.0 (compatible; MSIE 7.0b; Windows NT 6.0)";
 
-                page.settings.userAgent = arg;
+                webpage.settings.userAgent = arg;
 
             } else if (arg === "-z") {
 
@@ -95,13 +95,13 @@ exports.parse = function() {
 
                 skip = true;
                 arg = parseArg(i);
-                page.settings.userName = arg;
+                webpage.settings.userName = arg;
 
             } else if (arg === "-password") {
 
                 skip = true;
                 arg = parseArg(i);
-                page.settings.password = arg;
+                webpage.settings.password = arg;
 
             } else if (arg === "-sa") flags["sort-by"] |= 2;
             else if (arg === "-sd") flags["sort-by"] |= 4;

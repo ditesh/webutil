@@ -29,12 +29,7 @@ var summary = {
 
 exports.onResourceRequested = function(res) {
 
-    if (debug) {
-        
-        helper.log("onResourceRequested");
-        helper.log(res);
-
-    }
+    if (debug) helper.log("onResourceRequested: " + JSON.stringify(res));
 
     var id = res["id"];
     if ((id in tempAssets) === false) tempAssets[id] = {};
@@ -44,12 +39,9 @@ exports.onResourceRequested = function(res) {
 
 exports.onResourceReceived = function(res) {
 
-    if (debug) {
+    if (debug) helper.log("onResourceReceived: " + JSON.stringify(res));
 
-        helper.log("onResourceReceived");
-        helper.log(res);
-
-    }
+//    headers.parse(res);
 
     var id = res["id"]
     if (res["stage"] === "start") tempAssets[id]["start-response"] = res;

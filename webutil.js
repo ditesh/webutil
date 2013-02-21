@@ -2,7 +2,7 @@
 
 var helper = require("./helper"), webpage = require("webpage").create(),
     cli = require("./cli").parse(), flags = cli["flags"],
-    page = require("./page"), print = require("./print");
+    page = require("./page"), print = require("./print"), headers = new (require("./headers").Headers);
 
 print.header();
 
