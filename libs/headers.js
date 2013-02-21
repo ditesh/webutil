@@ -20,6 +20,7 @@ exports.Headers = function() {
         "positive-integer-expected": "Invalid value (positive integer expected)",
         "invalid-language-code": "Invalid language code",
         "invalid-date-format": "Invalid date format",
+        "invalid-date": "Invalid date",
         "invalid-uri": "Invalid URI format",
         "non-gzip-encoding": "Non gzip encoding",
         "missing-dependent-header": "A dependent header is missing",
@@ -277,7 +278,10 @@ exports.Headers = function() {
 
     this.date = function(value, response) {
 
-        if (Date.parse(value) === null) return "invalid-date-format";
+        var value = Date.parse(value);
+        if (value === null) return "invalid-date-format";
+        if (value > Date.now()) return "invalid-date";
+
         return "ok";
 
     }
@@ -346,6 +350,7 @@ exports.Headers = function() {
     this.last_modified = function(value, response) {
 
         if (Date.parse(value) === null) return "invalid-date-format";
+        if (value > Date.now()) return "invalid-date";
         return "ok";
 
     };
