@@ -42,37 +42,9 @@ exports.Headers = function() {
             var name = header["name"].toLowerCase().replace(/-/g, "_");
             var value = header["value"].toLowerCase().trim();
 
-            if (name.substr(0, 2) === "x_") {
-                
-                if (seenheaders.indexOf(name) < 0) {
-
-                    helper.log("Ignoring header " + name);
-                    retval[name] = "ignored";
-                    seenheaders.push(name);
-
-                }
-
-            } else if ((name in self) === false) {
-
-                if (seenheaders.indexOf(name) < 0) {
-                
-                    helper.log("Missing header " + name);
-                    retval[name] = false;
-                    seenheaders.push(name);
-
-                }
-
-            } else {
-                
-                retval[name] = self[name](value, response);
-                if (retval[name] !== "ok") {
-                    
-//                    helper.log(response);
-                    helper.log(name + " is fubaring with reason " + retval[name] + " with value " + value);
-
-                }
-
-            }
+            if (name.substr(0, 2) === "x_") retval[name] = "ignored";
+            else if ((name in self) === false) retval[name] = false;
+            else retval[name] = self[name](value, response);
 
         }
 

@@ -41,8 +41,6 @@ exports.onResourceReceived = function(res) {
 
     if (debug) helper.log("onResourceReceived: " + JSON.stringify(res));
 
-    headers.parse(res);
-
     var id = res["id"]
     if (res["stage"] === "start") tempAssets[id]["start-response"] = res;
     else {
