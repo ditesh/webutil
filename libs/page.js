@@ -41,7 +41,7 @@ exports.onResourceReceived = function(res) {
 
     if (debug) helper.log("onResourceReceived: " + JSON.stringify(res));
 
-//    headers.parse(res);
+    headers.parse(res);
 
     var id = res["id"]
     if (res["stage"] === "start") tempAssets[id]["start-response"] = res;
@@ -72,8 +72,7 @@ exports.onError = function(msg, trace) {
     if (debug) helper.log("onError");
 
     // Log errors in the webutil codebase to stdout
-    var filename = trace[0]["file"];
-    if (filename.substr(0, 4) !== "http") {
+    if (trace.length > 0 && trace[0]["file"].substr(0, 4) !== "http") {
         
         if (flags["silent"] !== true) console.log("BUG in webutil, dumping stack trace and exiting");
         console.log(msg);

@@ -1,8 +1,8 @@
 "use strict"
 
-var helper = require("./helper"), webpage = require("webpage").create(),
-    cli = require("./cli").parse(), flags = cli["flags"],
-    page = require("./page"), print = require("./print"), headers = new (require("./headers").Headers);
+var helper = require("./libs/helper"), webpage = require("webpage").create(),
+    cli = require("./libs/cli").parse(), flags = cli["flags"],
+    page = require("./libs/page"), print = require("./libs/print"), headers = new (require("./libs/headers").Headers);
 
 print.header();
 

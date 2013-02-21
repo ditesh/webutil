@@ -3,9 +3,11 @@
 exports.Headers = function() {
 
     var self = this;
+    var seenheaders = [];
 
     var syntax = {
 
+        email: /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
         uri: /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i,
         token: /(?:[!#\$%&\'\*\+\-\.\^_`|~A-Za-z0-9]+?)/i,
         quoted_string: /(?:"(?:[ \t\x21\x23-\x5B\x5D-\x7E]|\\[ \t\x21-\x7E])*")/i,
@@ -14,11 +16,11 @@ exports.Headers = function() {
     };
 
     var reasons = {
-        "positive-integer-expected": "Invalid value (positive integer expected)",
         "invalid-status-for-method": "Invalid HTTP response status code for method",
+        "positive-integer-expected": "Invalid value (positive integer expected)",
+        "invalid-language-code": "Invalid language code",
         "invalid-date-format": "Invalid date format",
         "invalid-uri": "Invalid URI format",
-        "syntax-error": "Syntax error parsing header",
         "non-gzip-encoding": "Non gzip encoding",
         "missing-dependent-header": "A dependent header is missing",
         "invalid-charset": "Invalid character set",
@@ -40,16 +42,35 @@ exports.Headers = function() {
             var name = header["name"].toLowerCase().replace(/-/g, "_");
             var value = header["value"].toLowerCase().trim();
 
-            if (name.substr(0, 2) === "x_") retval[name] = "ignored";
-            else if ((name in self) === false) {
+            if (name.substr(0, 2) === "x_") {
                 
-                helper.log("Missing header " + name);
-                retval[name] = false;
+                if (seenheaders.indexOf(name) < 0) {
+
+                    helper.log("Ignoring header " + name);
+                    retval[name] = "ignored";
+                    seenheaders.push(name);
+
+                }
+
+            } else if ((name in self) === false) {
+
+                if (seenheaders.indexOf(name) < 0) {
+                
+                    helper.log("Missing header " + name);
+                    retval[name] = false;
+                    seenheaders.push(name);
+
+                }
 
             } else {
                 
                 retval[name] = self[name](value, response);
-                if (retval[name] !== "ok") helper.log(name + " is fubaring with reason " + retval[name] + " with value " + value);
+                if (retval[name] !== "ok") {
+                    
+//                    helper.log(response);
+                    helper.log(name + " is fubaring with reason " + retval[name] + " with value " + value);
+
+                }
 
             }
 
@@ -75,7 +96,30 @@ exports.Headers = function() {
     };
 
     this.access_control_allow_methods = function(value, response) {
+
+        value = value.split(",");
+        var methods = ["get", "post", "delete", "options", "head", "put", "trace", "connect"];
+        
+        for (var v in value) {
+
+            v = value[v].trim();
+            if (methods.indexOf(v) < 0) return "invalid-value";
+
+        }
+
         return "ok";
+
+    };
+
+    this.access_control_allow_headers = function(value, response) {
+        return "ok";
+    };
+
+    this.access_control_allow_credentials = function(value, response) {
+
+        if (value !== "true" && value !== "false") return "invalid-value";
+        return "ok";
+
     };
 
     this.access_control_max_age = function(value, response) {
@@ -172,6 +216,26 @@ exports.Headers = function() {
 
     };
 
+    // Should check language codes
+    this.content_language = function(value, response) {
+        
+        value = value.split(",");
+
+        for (var v in value) {
+
+            if (value[v].length === 1 && value[v][0].length !== 2) return "invalid-language-code";
+            else {
+
+                v = value[v].split("-");
+                if (v[0].trim().length !== 2) return "invalid-language-code";
+
+            }
+        }
+
+        return "ok";
+
+    };
+
     this.content_length = function(value, response) {
 
         // Skipping regex check as the check is handled by isNaN()
@@ -181,19 +245,30 @@ exports.Headers = function() {
         if (value < 0) return "positive-integer-expected";
         return "ok";
 
-    }
+    };
 
-    // XXX - no check for this header yet
-    this.content_md5 = function(value, response) {
+    this.content_location = function(value, response) {
+
+        if (syntax.uri.test(value) === false) return "invalid-uri";
         return "ok";
-    }
+
+    };
+
+    // @example Content-MD5: Q2hlY2sgSW50ZWdyaXR5IQ==
+    // @ref http://en.wikipedia.org/wiki/List_of_HTTP_header_fields
+    this.content_md5 = function(value, response) {
+
+        if (value.length !== 24) return "invalid-value";
+        return "ok";
+
+    };
 
     this.content_range = function(value, response) {
 
         if (response["status"] !== "206" && response["status"] !== "416") return "invalid-status-for-method";
         return "ok";
 
-    }
+    };
 
     // XXX - no check for this header yet
     this.content_transfer_encoding = function(value, response) {
@@ -209,18 +284,20 @@ exports.Headers = function() {
         value[1].trim()
 
         if (value[0].indexOf("charset") === 0) value = value[0];
-        else value = value[1];
+        else if (value[1].indexOf("charset") === 0) value = value[1];
+        else return "ok";
 
         value = value.trim().split("=");
 
-        if (value.length !== 2) return "syntax-error";
-        if (value[0] !== "charset") return "syntax-error";
+        if (value.length !== 2) return "invalid-value";
+        if (value[0] !== "charset") return "invalid-value";
 
         var charset = value[1].trim();
 
         if (["utf-8", "utf-16", "iso-8859-1", "iso-8859-2", "iso-8859-3", "iso-8859-4", "iso-8859-5", 
-                "iso-8859-6", "iso-8859-7", "iso-8859-8", "iso-8859-9", "iso-8859-10", "iso-8859-15", "iso-2022-jp",
-                "iso-2022-jp-2", "iso-2022-jp-3", "iso-2022-kr", "us-ascii"].indexOf(charset) < 0) return "invalid-charset";
+                "iso-8859-6", "iso-8859-7", "iso-8859-8", "iso-8859-9", "iso-8859-10", "iso-8859-15",
+                "iso-2022-jp", "iso-2022-jp-2", "iso-2022-jp-3", "iso-2022-kr", "us-ascii", "gbk",
+                "euc-kr", "euc-jp", "gb2312"].indexOf(charset) < 0) return "invalid-charset";
 
         return "ok";
 
@@ -244,25 +321,41 @@ exports.Headers = function() {
 
     };
 
+    this.from = function(value, response) {
+
+        if (syntax.email.test(value) === false) return "invalid-value";
+        return "ok";
+
+    };
+
     this.keep_alive = function(value, response) {
 
         var values = value.split(",");
-        if (values.length !== 2) return "invalid-value";
+        if (values.length > 2) return "invalid-value";
 
-        var value0 = values[0].split("=");
-        var value1 = values[1].split("=");
+        if (values.length <= 2) {
 
-        if (value0.length !== 2) return "invalid-value";
-        if (value1.length !== 2) return "invalid-value";
+            var value0 = values[0].split("=");
 
-        value0[0] = value0[0].trim();
-        value1[0] = value1[0].trim();
+            if (value0.length !== 2) return "invalid-value";
+            value0[0] = value0[0].trim();
 
-        if (value0[0] !== "timeout" && value0[0] !== "max") return "invalid-value";
-        if (value1[0] !== "timeout" && value1[0] !== "max") return "invalid-value";
+            if (value0[0] !== "timeout" && value0[0] !== "max") return "invalid-value";
+            if (isNaN(value0[1]) || parseInt(value0[1]) < 1) return "positive-integer-expected";
 
-        if (isNaN(value0[1]) || parseInt(value0[1]) < 1) return "positive-integer-expected";
-        if (isNaN(value1[1]) || parseInt(value1[1]) < 1) return "positive-integer-expected";
+        }
+
+        if (values.length === 2) {
+
+            var value1 = values[1].split("=");
+            if (value1.length !== 2) return "invalid-value";
+
+            value1[0] = value1[0].trim();
+
+            if (value1[0] !== "timeout" && value1[0] !== "max") return "invalid-value";
+            if (isNaN(value1[1]) || parseInt(value1[1]) < 1) return "positive-integer-expected";
+
+        }
 
         for (var header in response["headers"]) {
 
@@ -290,7 +383,6 @@ exports.Headers = function() {
         return "ok";
 
     };
-
 
     this.location = function(value, response) {
 
@@ -325,6 +417,26 @@ exports.Headers = function() {
 
     this.set_cookie = function(value, response) {
         return "ok";
+    };
+
+    // Strict-Transport-Security: max-age=expireTime [; includeSubdomains]
+    // https://developer.mozilla.org/en-US/docs/Security/HTTP_Strict_Transport_Securit
+    this.strict_transport_security = function(value, response) {
+
+        value = value.split(";");
+
+        if (value.length <= 2) {
+
+            value = value[0].split("=");
+
+            if (value.length !== 2) return "invalid-value";
+            if (value[0].trim() !== "max-age") return "invalid-value";
+            if (isNaN(value[1].trim())) return "positive-integer-expected";
+
+        } else return "invalid-value";
+
+        return "ok";
+
     };
 
     this.tcn = function(value, response) {
