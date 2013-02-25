@@ -20,8 +20,19 @@ for i in `cat tests/test-sites`; do
 
     if [ $? -ne 0 ]; then
         echo $OUTPUT > "/tmp/wutest/$i.log"
-        echo "FAIL"
-    else echo "OK"
+        echo "CRASH"
+    else
+        
+        OUTPUT=`echo $OUTPUT | grep "Timing"`
+        VAL1=`echo $OUTPUT | awk '{print $4}'`
+        VAL2=`echo $OUTPUT | awk '{print $6}'`
+        VAL3=`echo $OUTPUT | awk '{print $8}'`
+
+        if [ $VAL1 -le $VAL2 ] && [ $VAL2 -le $VAL3 ] ; then echo "OK"
+        else
+            echo $OUTPUT > "/tmp/wutest/$i.log"
+            echo "FAIL"
+        fi
     fi
 
 done

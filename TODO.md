@@ -9,3 +9,4 @@
 - [ ] Cookie support
 - [ ] Spriting support
 - [ ] Add license to all files
+- [ ] Detect multiple jquerys/prototypes etc

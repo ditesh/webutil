@@ -69,6 +69,7 @@ exports.parse = function() {
 
                 skip = true;
                 arg = parseArg(i);
+                flags["same-domain"] = false;
                 flags["equivalent-domains"] = arg.split(",");
 
             } else if (arg === "-fl") {

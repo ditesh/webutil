@@ -1,3 +1,5 @@
+"use strict"
+
 var summary = {
         "counts": {
             "resources": {
@@ -22,10 +24,12 @@ var summary = {
         "on-dom-content-loaded": 0,
         "first-byte-time": 0
     },
-    fs = require('fs'), startTime = Date.now(),
+    fs = require('fs'), startTime = -1,
     title="", count = 0, debug = flags["debug"],
     errors = {"4xx": [], "5xx": [], "js": []},
     tempAssets = {}, assets = {}, serializedAssets = [];
+
+var firstbyte = false;
 
 exports.onResourceRequested = function(res) {
 
@@ -84,7 +88,6 @@ exports.onError = function(msg, trace) {
 
 exports.onInitialized = function() {
 
-    if (debug) helper.log("onInitialized");
     webpage.evaluate(function(domContentLoadedMsg) {
         document.addEventListener("DOMContentLoaded", function() {
               window.callPhantom("DOMContentLoaded");
@@ -96,9 +99,11 @@ exports.onInitialized = function() {
 exports.onNavigationRequested = function(url, type, willNavigate, main) {
 
     if (debug) helper.log("onNavigationRequested");
-    startTime = Date.now();
+    if (main === true) startTime = Date.now();
 
 };
+
+exports.onLoadStarted = function() {};
 
 exports.onLoadFinished = function(status) {
     if (debug) helper.log("onLoadFinished");
@@ -106,9 +111,11 @@ exports.onLoadFinished = function(status) {
 };
 
 exports.onCallback = function(data) {
+
     if (debug) helper.log("onCallback");
     if (data === "DOMContentLoaded") summary["on-dom-content-loaded"] = Date.now() - startTime;
     title = webpage.evaluate(function() { return document.title; });
+
 };
 
 exports.callback = function(status) {

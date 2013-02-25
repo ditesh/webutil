@@ -1,8 +1,8 @@
 "use strict"
 
 var helper = require("./libs/helper"), webpage = require("webpage").create(),
-    cli = require("./libs/cli").parse(), flags = cli["flags"],
-    page = require("./libs/page"), print = require("./libs/print"), headers = new (require("./libs/headers").Headers);
+    print = require("./libs/print"), cli = require("./libs/cli").parse(), flags = cli["flags"],
+    page = require("./libs/page"), headers = new (require("./libs/headers").Headers);
 
 print.header();
 
@@ -23,7 +23,8 @@ webpage.onResourceReceived = page.onResourceReceived;
 webpage.onError = page.onError;
 webpage.onInitialized =  page.onInitialized;
 webpage.onNavigationRequested =  page.onNavigationRequested;
-webpage.onLoadFinished=  page.onLoadFinished;
+webpage.onLoadStarted =  page.onLoadStarted;
+webpage.onLoadFinished =  page.onLoadFinished;
 webpage.onCallback =  page.onCallback;
 
 // Fire!
