@@ -19,7 +19,7 @@ mkdir -p "$TMPDIR/gif/post" "$TMPDIR/css/pre" "$TMPDIR/css/post" "$TMPDIR/js/pre
 echo "Web Optimization Tool 1.0 (c) 2013 Ditesh Gathani <ditesh@gathani.org>"
 echo
 echo -n "Running webutil ... "
-OUTPUT=`phantomjs ./webutil.js -dd themalaysianinsider -u -s $@`
+OUTPUT=`phantomjs ./webutil.js -d -u -s $@`
 
 if [ "$?" -ne "0" ] ; then echo "unable to connect";
 echo exit 1
@@ -62,12 +62,10 @@ echo "done."
 echo -n "Checking for PNG files ... "
 if [ -f "$TMPDIR/pngfiles.txt" ]; then
 
-    echo "found"
-    echo -n "Downloading PNG files ... "
-    `wget -q --user-agent="$USERAGENT" -P "$TMPDIR/png/pre" --input-file="$TMPDIR/pngfiles.txt"`
-    echo "done."
+    echo -n "found ... downloading ... "
+    wget -q --user-agent="$USERAGENT" -P "$TMPDIR/png/pre" --input-file="$TMPDIR/pngfiles.txt"
 
-    echo -n "Optimizing PNG files ... "
+    echo -n "optimizing ... "
     optipng -quiet -o 9 -dir "$TMPDIR/png/post" $TMPDIR/png/pre/*
     echo "done."
 
@@ -97,15 +95,15 @@ fi
 echo -n "Checking for JPG files ... "
 if [ -f "$TMPDIR/jpgfiles.txt" ]; then
 
-    echo "found."
-    echo -n "Downloading JPG files ... "
+    echo -n "found ... downloading ... "
     `wget -q --user-agent $USERAGENT -q -P "$TMPDIR/jpg/pre" --input-file="$TMPDIR/jpgfiles.txt"`
-    echo "done."
 
-    echo -n "Optimizing JPG files ... "
+    echo -n "optimizing ... "
     for i in `ls $TMPDIR/jpg/pre/*`; do
+
         i=`echo $i | xargs -0 -n1 basename`
         jpegtran -optimize -copy none "$TMPDIR/jpg/pre/$i" > "$TMPDIR/jpg/post/$i";
+
     done
     echo "done."
 
@@ -137,20 +135,20 @@ fi
 echo -n "Checking for GIF files ... "
 if [ -f "$TMPDIR/giffiles.txt" ]; then
 
-    echo "found."
-    echo -n "Downloading GIF files ... "
+    echo -n "found ... downloading ... "
     `wget -q --user-agent $USERAGENT -q -P "$TMPDIR/gif/pre" --input-file="$TMPDIR/giffiles.txt"`
-    echo "done."
 
-    echo -n "Optimizing GIF files ... "
+    echo -n "optimizing ... "
     for i in `ls $TMPDIR/gif/pre/*`; do
 
         i=`echo $i | xargs -0 -n1 basename`
-        RETVAL=`optipng -o 9 -dir $TMPDIR/gif/post/ $TMPDIR/gif/pre/$i`
+        RETVAL=`optipng -o 9 -out "$TMPDIR/gif/post/$i.png" "$TMPDIR/gif/pre/$i"`
 
         if [[ "$?" -ne "0" || $(echo $RETVAL | grep "increase") ]]; then
-            rm -f $TMPDIR/gif/post/$i
+
+            rm -f "$TMPDIR/gif/post/$i.png"
             cp "$TMPDIR/gif/pre/$i" "$TMPDIR/gif/post/$i"
+
         fi
 
     done
@@ -182,15 +180,15 @@ fi
 echo -n "Checking for CSS files ... "
 if [ -f "$TMPDIR/cssfiles.txt" ]; then
 
-    echo "found."
-    echo -n "Downloading CSS files ... "
-    `wget -q --user-agent $USERAGENT -q -P "$TMPDIR/css/pre" --input-file="$TMPDIR/cssfiles.txt"`
-    echo "done."
+    echo -n "found ... downloading ... "
+    wget -q --user-agent $USERAGENT -q -P "$TMPDIR/css/pre" --input-file="$TMPDIR/cssfiles.txt"
 
-    echo -n "Optimizing CSS files ... "
+    echo -n "optimizing ... "
     for i in `ls $TMPDIR/css/pre/*`; do
+
         i=`echo $i | xargs -0 -n1 basename`
-        `csstidy "$TMPDIR/css/pre/$i" --silent=true "$TMPDIR/css/post/$i"`
+        csstidy "$TMPDIR/css/pre/$i" --silent=true "$TMPDIR/css/post/$i"
+
     done
     echo "done."
 
@@ -217,15 +215,15 @@ fi
 echo -n "Checking for JS files ... "
 if [ -f "$TMPDIR/jsfiles.txt" ]; then
 
-    echo "found."
-    echo -n "Downloading JS files ... "
+    echo -n "found ... downloading ... "
     `wget -q --user-agent $USERAGENT -q -P "$TMPDIR/js/pre" --input-file="$TMPDIR/jsfiles.txt"`
-    echo "done."
 
-    echo -n "Optimizing JS files ... "
+    echo -n "optimizing ..."
     for i in `ls $TMPDIR/js/pre/*`; do
+
         i=`echo $i | xargs -0 -n1 basename`
-        `uglifyjs "$TMPDIR/js/pre/$i" -o "$TMPDIR/js/post/$i -c"`
+        uglifyjs "$TMPDIR/js/pre/$i" -o "$TMPDIR/js/post/$i" -c 2> /dev/null
+
     done
     echo "done."
 
