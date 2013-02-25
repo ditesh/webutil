@@ -19,7 +19,7 @@ mkdir -p "$TMPDIR/gif/post" "$TMPDIR/css/pre" "$TMPDIR/css/post" "$TMPDIR/js/pre
 echo "Web Optimization Tool 1.0 (c) 2013 Ditesh Gathani <ditesh@gathani.org>"
 echo
 echo -n "Running webutil ... "
-OUTPUT=`phantomjs ./webutil.js -d -u -s $@`
+OUTPUT=`phantomjs ./webutil.js -dd themalaysianinsider -u -s $@`
 
 if [ "$?" -ne "0" ] ; then echo "unable to connect";
 echo exit 1
@@ -73,15 +73,19 @@ if [ -f "$TMPDIR/pngfiles.txt" ]; then
 
     PNG=true
     PNGCOUNT=`ls $TMPDIR/png/pre | wc -l`
-    PNGPRE=`du -bh $TMPDIR/png/pre | awk '{ print $1 }' | cut -d'K' -f 1`
-    PNGPOST=`du -bh $TMPDIR/png/post | awk '{ print $1 }' | cut -d'K' -f 1`
+    PNGPRE=`du -b $TMPDIR/png/pre | awk '{ print $1 }'`
+    PNGPOST=`du -b $TMPDIR/png/post | awk '{ print $1 }'`
+    PNGPRE=`echo $PNGPRE/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    PNGPOST=`echo $PNGPOST/1024 | bc | sed -E 's/^(-?)\./\10./'`
     PNGDIFF=`echo "$PNGPRE-$PNGPOST" | bc | sed -E 's/^(-?)\./\10./'`
     PNGPER=`echo "scale=2;100*$PNGDIFF/$PNGPRE" | bc | sed -E 's/^(-?)\./\10./'`
 
     gzip $TMPDIR/png/pre/*
     gzip $TMPDIR/png/post/*
-    PNGPRE_COMPRESSED=`du -bh $TMPDIR/png/pre | awk '{ print $1 }' | cut -d'K' -f 1`
-    PNGPOST_COMPRESSED=`du -bh $TMPDIR/png/post | awk '{ print $1 }' | cut -d'K' -f 1`
+    PNGPRE_COMPRESSED=`du -b $TMPDIR/png/pre | awk '{ print $1 }'`
+    PNGPOST_COMPRESSED=`du -b $TMPDIR/png/post | awk '{ print $1 }'`
+    PNGPRE_COMPRESSED=`echo $PNGPRE_COMPRESSED/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    PNGPOST_COMPRESSED=`echo $PNGPOST_COMPRESSED/1024 | bc | sed -E 's/^(-?)\./\10./'`
     PNGDIFF_COMPRESSED=`echo "$PNGPRE_COMPRESSED-$PNGPOST_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
     PNGPER_COMPRESSED=`echo "scale=2;100*$PNGDIFF_COMPRESSED/$PNGPRE_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
     gunzip $TMPDIR/png/pre/*
@@ -99,22 +103,31 @@ if [ -f "$TMPDIR/jpgfiles.txt" ]; then
     echo "done."
 
     echo -n "Optimizing JPG files ... "
-    for i in `ls $TMPDIR/jpg/pre/* | xargs -0 -n1 basename`; do `jpegtran -optimize -copy none "$TMPDIR/jpg/pre/$i" > "$TMPDIR/jpg/post/$i"`; done
+    for i in `ls $TMPDIR/jpg/pre/*`; do
+        i=`echo $i | xargs -0 -n1 basename`
+        jpegtran -optimize -copy none "$TMPDIR/jpg/pre/$i" > "$TMPDIR/jpg/post/$i";
+    done
     echo "done."
 
     JPG=true
     JPGCOUNT=`ls $TMPDIR/jpg/pre | wc -l`
-    JPGPRE=`du -bh $TMPDIR/jpg/pre | awk '{ print $1 }' | cut -d'K' -f 1`
-    JPGPOST=`du -bh $TMPDIR/jpg/post | awk '{ print $1 }' | cut -d'K' -f 1`
+    JPGPRE=`du -b $TMPDIR/jpg/pre | awk '{ print $1 }'`
+    JPGPOST=`du -b $TMPDIR/jpg/post | awk '{ print $1 }'`
+    JPGPRE=`echo $JPGPRE/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    JPGPOST=`echo $JPGPOST/1024 | bc | sed -E 's/^(-?)\./\10./'`
     JPGDIFF=`echo "$JPGPRE-$JPGPOST" | bc | sed -E 's/^(-?)\./\10./'`
     JPGPER=`echo "scale=2;100*$JPGDIFF/$JPGPRE" | bc | sed -E 's/^(-?)\./\10./'`
 
     gzip $TMPDIR/jpg/pre/*
     gzip $TMPDIR/jpg/post/*
-    JPGPRE_COMPRESSED=`du -bh $TMPDIR/jpg/pre | awk '{ print $1 }' | cut -d'K' -f 1`
-    JPGPOST_COMPRESSED=`du -bh $TMPDIR/jpg/post | awk '{ print $1 }' | cut -d'K' -f 1`
+
+    JPGPRE_COMPRESSED=`du -b $TMPDIR/jpg/pre | awk '{ print $1 }'`
+    JPGPOST_COMPRESSED=`du -b $TMPDIR/jpg/post | awk '{ print $1 }'`
+    JPGPRE_COMPRESSED=`echo $JPGPRE_COMPRESSED/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    JPGPOST_COMPRESSED=`echo $JPGPOST_COMPRESSED/1024 | bc | sed -E 's/^(-?)\./\10./'`
     JPGDIFF_COMPRESSED=`echo "$JPGPRE_COMPRESSED-$JPGPOST_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
     JPGPER_COMPRESSED=`echo "scale=2;100*$JPGDIFF_COMPRESSED/$JPGPRE_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
+
     gunzip $TMPDIR/jpg/pre/*
     gunzip $TMPDIR/jpg/post/*
 
@@ -130,15 +143,14 @@ if [ -f "$TMPDIR/giffiles.txt" ]; then
     echo "done."
 
     echo -n "Optimizing GIF files ... "
-    for i in `ls $TMPDIR/gif/pre/* | xargs -0 -n1 basename`; do
+    for i in `ls $TMPDIR/gif/pre/*`; do
 
-        FILENAME="${i%.*}"
-
+        i=`echo $i | xargs -0 -n1 basename`
         RETVAL=`optipng -o 9 -dir $TMPDIR/gif/post/ $TMPDIR/gif/pre/$i`
 
         if [[ "$?" -ne "0" || $(echo $RETVAL | grep "increase") ]]; then
-            rm -f $TMPDIR/gif/post/$FILENAME.png
-            cp $TMPDIR/gif/pre/$FILENAME.gif $TMPDIR/gif/post/$i
+            rm -f $TMPDIR/gif/post/$i
+            cp "$TMPDIR/gif/pre/$i" "$TMPDIR/gif/post/$i"
         fi
 
     done
@@ -146,15 +158,19 @@ if [ -f "$TMPDIR/giffiles.txt" ]; then
 
     GIF=true
     GIFCOUNT=`ls $TMPDIR/gif/pre | wc -l`
-    GIFPRE=`du -bh $TMPDIR/gif/pre | awk '{ print $1 }' | cut -d'K' -f 1`
-    GIFPOST=`du -bh $TMPDIR/gif/post | awk '{ print $1 }' | cut -d'K' -f 1`
+    GIFPRE=`du -b $TMPDIR/gif/pre | awk '{ print $1 }'`
+    GIFPOST=`du -b $TMPDIR/gif/post | awk '{ print $1 }'`
+    GIFPRE=`echo $GIFPRE/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    GIFPOST=`echo $GIFPOST/1024 | bc | sed -E 's/^(-?)\./\10./'`
     GIFDIFF=`echo "$GIFPRE-$GIFPOST" | bc | sed -E 's/^(-?)\./\10./'`
     GIFPER=`echo "scale=2;100*$GIFDIFF/$GIFPRE" | bc | sed -E 's/^(-?)\./\10./'`
 
     gzip $TMPDIR/gif/pre/*
     gzip $TMPDIR/gif/post/*
-    GIFPRE_COMPRESSED=`du -bh $TMPDIR/gif/pre | awk '{ print $1 }' | cut -d'K' -f 1`
-    GIFPOST_COMPRESSED=`du -bh $TMPDIR/gif/post | awk '{ print $1 }' | cut -d'K' -f 1`
+    GIFPRE_COMPRESSED=`du -b $TMPDIR/gif/pre | awk '{ print $1 }'`
+    GIFPOST_COMPRESSED=`du -b $TMPDIR/gif/post | awk '{ print $1 }'`
+    GIFPRE_COMPRESSED=`echo $GIFPRE_COMPRESSED/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    GIFPOST_COMPRESSED=`echo $GIFPOST_COMPRESSED/1024 | bc | sed -E 's/^(-?)\./\10./'`
     GIFDIFF_COMPRESSED=`echo "$GIFPRE_COMPRESSED-$GIFPOST_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
     GIFPER_COMPRESSED=`echo "scale=2;100*$GIFDIFF_COMPRESSED/$GIFPRE_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
     gunzip $TMPDIR/gif/pre/*
@@ -172,7 +188,10 @@ if [ -f "$TMPDIR/cssfiles.txt" ]; then
     echo "done."
 
     echo -n "Optimizing CSS files ... "
-    for i in `ls $TMPDIR/css/pre/* | xargs -0 -n1 basename`; do `csstidy "$TMPDIR/css/pre/$i" --silent=true "$TMPDIR/css/post/$i"`; done
+    for i in `ls $TMPDIR/css/pre/*`; do
+        i=`echo $i | xargs -0 -n1 basename`
+        `csstidy "$TMPDIR/css/pre/$i" --silent=true "$TMPDIR/css/post/$i"`
+    done
     echo "done."
 
     CSS=true
@@ -204,7 +223,10 @@ if [ -f "$TMPDIR/jsfiles.txt" ]; then
     echo "done."
 
     echo -n "Optimizing JS files ... "
-    for i in `ls $TMPDIR/js/pre/* | xargs -0 -n1 basename`; do `uglifyjs "$TMPDIR/js/pre/$i" -o "$TMPDIR/js/post/$i -c"`; done
+    for i in `ls $TMPDIR/js/pre/*`; do
+        i=`echo $i | xargs -0 -n1 basename`
+        `uglifyjs "$TMPDIR/js/pre/$i" -o "$TMPDIR/js/post/$i -c"`
+    done
     echo "done."
 
     JS=true
