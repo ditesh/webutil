@@ -3,7 +3,6 @@
 exports.Headers = function() {
 
     var self = this;
-    var seenheaders = [];
 
     var syntax = {
 

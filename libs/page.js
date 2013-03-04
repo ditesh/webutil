@@ -13,6 +13,10 @@ var summary = {
                 "compressed": 0,
                 "not-compressed": 0,
             },
+            "encryption": {
+                "encrypted": 0,
+                "not-encrypted": 0,
+            },
             "encodings": {
                 "UTF-8": 0,
                 "ISO-8859-1": 0,
@@ -27,7 +31,7 @@ var summary = {
     fs = require('fs'), startTime = -1,
     title="", count = 0, debug = flags["debug"],
     errors = {"4xx": [], "5xx": [], "js": []},
-    tempAssets = {}, assets = {}, serializedAssets = [];
+    tempAssets = {}, assets = {}, serializedAssets = [], snifferOutput = [];
 
 var firstbyte = false;
 
@@ -104,10 +108,33 @@ exports.onNavigationRequested = function(url, type, willNavigate, main) {
 };
 
 exports.onLoadStarted = function() {};
+exports.onConsoleMessage = function(msg) {
+//    helper.log(msg);
+};
 
 exports.onLoadFinished = function(status) {
+
     if (debug) helper.log("onLoadFinished");
     summary["load-time"] = Date.now() - startTime;
+
+    if (flags["sniff"] === true) {
+
+        webpage.injectJs("resources/jquery-1.9.1.min.js");
+        var sniffed = webpage.evaluate(sniffer.sniff);
+
+        for (var i in sniffed) {
+
+            var datum = {}, res = data[i];
+
+            datum["version"] = sniffed[i];
+
+            if (res === undefined) { datum["name"] = i; helper.log(i); }
+            else datum["name"] = res["name"];
+
+            snifferOutput.push(datum);
+
+        }
+    }
 };
 
 exports.onCallback = function(data) {
@@ -258,7 +285,6 @@ var callback = function(status) {
 
                 });
 
-
                 summary["total-size"] += asset["start-response"]["bodySize"];
 
                 if (offset > 0) {
@@ -304,8 +330,10 @@ var callback = function(status) {
                 if (compressed === true) summary["counts"]["compression"]["not-compressed"] += 1;
                 else summary["counts"]["compression"]["compressed"] += 1;
 
-            }
+                if (assetURL.length >= 5 && assetURL.substr(0, 5) === "https") summary["counts"]["encryption"]["encrypted"] += 1;
+                else summary["counts"]["encryption"]["not-encrypted"] += 1;
 
+            }
         }
 
         print.results({
@@ -316,7 +344,8 @@ var callback = function(status) {
             "4xx-errors": errors["4xx"],
             "5xx-errors": errors["5xx"],
             "http-errors": errors["4xx"].concat(errors["5xx"]),
-            "js-errors": errors["js"]
+            "js-errors": errors["js"],
+            "sniffer-output": snifferOutput
         });
 
         if (flags["screenshot-path"].length > 0) {

@@ -2,7 +2,8 @@
 
 var helper = require("./libs/helper"), webpage = require("webpage").create(),
     print = require("./libs/print"), cli = require("./libs/cli").parse(), flags = cli["flags"],
-    page = require("./libs/page"), headers = new (require("./libs/headers").Headers);
+    page = require("./libs/page"), sniffer = require("./libs/sniffer"), data = require("./libs/data").data,
+    headers = new (require("./libs/headers").Headers);
 
 print.header();
 
@@ -26,6 +27,7 @@ webpage.onNavigationRequested =  page.onNavigationRequested;
 webpage.onLoadStarted =  page.onLoadStarted;
 webpage.onLoadFinished =  page.onLoadFinished;
 webpage.onCallback =  page.onCallback;
+webpage.onConsoleMessage =  page.onConsoleMessage;
 
 // Fire!
 webpage.open(cli["url"], page.callback);

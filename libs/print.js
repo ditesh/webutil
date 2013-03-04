@@ -22,6 +22,7 @@ exports.results = function(results) {
         console.log(prefix + "Resources\t" + formatResources(results["summary"]["counts"]["resources"]));
         console.log(prefix + "\t\t" + formatResources(results["summary"]["counts"]["encodings"]));
         console.log(prefix + "\t\t" + formatResources(results["summary"]["counts"]["compression"]));
+        console.log(prefix + "\t\t" + formatResources(results["summary"]["counts"]["encryption"]));
         console.log(prefix + "Timing\t\t" + "first byte: " + results["summary"]["first-byte-time"]
                 + " ms, onDOMContentLoaded: " +results["summary"]["on-dom-content-loaded"]
                 + " ms, onLoad: " + results["summary"]["load-time"] + " ms");
@@ -105,6 +106,23 @@ exports.results = function(results) {
 
     }
 
+    if (flags["sniff"] === true) {
+
+        if (silent !== true) {
+
+            console.log("");
+            console.log("[Detected Libraries and Frameworks]");
+
+        }
+
+        results["sniffer-output"].forEach(function(arg, i) {
+            console.log(prefix + arg["name"] + " " + arg["version"]);
+        });
+
+        if (results["sniffer-output"].length === 0) console.log(prefix + "None");
+
+    }
+
     if (flags["print-http-errors"] === true) {
 
         if (silent !== true) {
@@ -179,6 +197,7 @@ exports.help = function() {
     console.log("\t-s: print only relevant data (with no summary), works with either -b OR -u specified (and not both)");
     console.log("\t-u: print all retrieved URL's");
     console.log("\t-z: specify screenshot path");
+    console.log("\t-dd: specify keywords for 'same domain' matches");
     console.log("\t-fl: specify fully loaded state interval check (defaults to 2 second checks)");
     console.log("\t-he: print HTTP errors (status code >= 400)");
     console.log("\t-je: print JavaScript errors");
@@ -188,6 +207,7 @@ exports.help = function() {
     console.log("\t-ua: specify user agent");
     console.log("\t-har: specify HAR filename");
     console.log("\t-debug: enable debugging (default false)");
+    console.log("\t-sniffer: print all libraries and CMS's detected");
     console.log("\t-timeout: specify timeout in seconds (default 30 seconds)");
     console.log("\t-username: specify username for HTTP authentication");
     console.log("\t-password: specify password for HTTP authentication");

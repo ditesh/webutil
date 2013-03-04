@@ -22,7 +22,8 @@ echo -n "Running webutil ... "
 OUTPUT=`phantomjs ./webutil.js -d -u -s $@`
 
 if [ "$?" -ne "0" ] ; then echo "unable to connect";
-echo exit 1
+echo
+exit 1
 fi
 
 if $(echo $@ | grep -q "\-ua ipad"); then

@@ -1,260 +1,299 @@
 "use strict"
 
-exports.Sniffer = function() {
+exports.sniff = function() {
 
-    var self = this;
+    return textTests(scriptTests(metaTests(linkTests(cssTests(jsTests({}))))));
 
-    this.getCMS = function() {
-        return "abc";
-    };
+    function cssTests(retval) {
 
-    this.getJSLibraries = function() {
-
-        var versions={};
-
-        // @ref http://angularjs.org
-        // @example http://angularjs.org
-        versions["angular"] = function() {
-            return {
-                name: "AngularJS",
-                url: "http://angularjs.org/",
-                version: window.angular.version.full
-            };
+        var tests = {
+            "bootstrap": '.navbar-pills, .hero-unit, .carousel-control, [class^="icon-"]:last-child'
         };
 
-        // @ref http://backbonejs.org
-        // @example http://backbonejs.org
-        versions["Backbone"] = function() {
-            return {
-                name: "BackboneJS",
-                url: "http://backbonejs.org/",
-                version: window.Backbone.VERSION
-            };
+        for (var i in tests) if (jQuery(tests[i]).length > 0) retval[i] = "";
+        return retval;
+
+    }
+
+    function metaTests(retval) {
+
+        // From https://github.com/nqbao/chromesniffer
+        var tests = {
+            'generator': {
+                "joomla": /joomla!?\s*([\d\.]+)?/i,
+                'vbulletin': /vBulletin\s*(.*)/i,
+                'wordpress': /WordPress\s*(.*)/i,
+                'xoops': /xoops/i,
+                'plone': /plone/i,
+                'mediawiki': /MediaWiki\s*(.*)/i,
+                'cms-made-simple': /CMS Made Simple/i,
+                'silverstripe': /SilverStripe/i,
+                'movabletype': /Movable Type/i,
+                'amiro-cms': /Amiro/i,
+                'bbpress': /bbPress/i,
+                'dokuwiki': /dokuWiki/i,
+                'typo3': /TYPO3/i,
+                'phpnuke': /PHP-Nuke/i,
+                'dotnetnuke': /DotNetNuke/i,
+                'sitefinity': /Sitefinity\s+(.*)/i,
+                'webgui': /WebGUI/i,
+                'ez publish': /eZ\s*Publish/i,
+                'bigace': /BIGACE/i,
+                'typepad': /typepad\.com/i,
+                'blogger': /blogger/i,
+                'prestashop': /PrestaShop/i,
+                'sharepoint': /SharePoint/,
+                'jaliosjcms': /Jalios JCMS/i,
+                'zencart': /zen-cart/i,
+                'wpml': /WPML/i,
+                'pivotx': /PivotX/i,
+                'openacs': /OpenACS/i,
+                'concrete5': /concrete5 -\s*(.*)$/,
+                'getsimple': /GetSimple/,
+            },
+            'copyright': {
+                'phpBB': /phpBB/i
+            },
+            'elggrelease': {
+                'Elgg': /.+/
+            },
+            'powered-by': {
+                'Serendipity': /Serendipity/i
+            },
+            'author': {
+                'Avactis': /Avactis Team/i
+            }
         };
 
-        // @ref http://d3js.org
-        // @example http://d3js.org
-        versions["d3"] = function() {
-            return {
-                name: "D3.js",
-                url: "http://d3js.org/",
-                version: window.d3.version
-            };
+        for (var i in tests) {
+
+            for (var j in tests[i]) {
+
+                if (j.toLowerCase() in retval) continue;
+
+                jQuery("meta").each(function(id, elem) {
+                
+                    elem = jQuery(elem);
+                    var content = elem.attr("name");
+                    if (typeof content !== "undefined") {
+
+                        content = content.toLowerCase();
+
+                        if (content === i) {
+
+                            content = elem.attr("content");
+                            var match = tests[i][j].exec(content);
+                            if (match !== null) retval[j.toLowerCase()] = "";
+
+                        }
+                    }
+                });
+            }
+        }
+
+        return retval;
+
+    }
+
+    function linkTests(retval) {
+
+        var tests = {
+            "amazon-s3": /s3.amazonaws.com/i,
+            "amazon-cloudfront": /cloudfront.net/i,
+            "rackspace-cloudfiles": /cloudfiles.rackspacecloud.com/i,
         };
 
-        // @ref http://dojotoolkit.org
-        // @example http://dojotoolkit.org
-        versions["dojo"] = function() {
-            return {
-                name: "Dojo",
-                url: "http://dojotoolkit.org/",
-                version: window.dojo.version.toString()
-            };
+        function cb(idx, elem) {
+
+            var src = "";
+            elem = jQuery(elem);
+
+            if (elem.is("img")) src = elem.attr("src");
+            else src = elem.attr("href");
+
+            if (typeof src !== "undefined") {
+
+                src = src.toLowerCase();
+
+                for (var i in tests) {
+
+                    if (i in retval) continue;
+                    var match = tests[i].exec(src);
+                    if (match !== null) retval[i.toLowerCase()] = "";
+
+                }
+            }
+        }
+
+        jQuery("img").each(cb);
+        jQuery("a, link").each(cb);
+
+        return retval;
+
+    }
+
+    function scriptTests(retval) {
+
+        // Most tests from https://github.com/nqbao/chromesniffer
+        var tests = {
+            "chartbeat": /static.chartbeat.com\/js\/chartbeat.js/i,
+            "innity": /cdn.innity.net\/admanager.js/i,
+            "comscore": /scorecardresearch.com\/beacon.js/i,
+            "_gaq": /google-analytics.com\/(ga|urchin).js/i,
+            "quantcast": /quantserve\.com\/quant\.js/i,
+            "prototype": /prototype\.js/i,
+            "joomla": /\/components\/com_/,
+            "ubercart": /uc_cart/i,
+            "closure": /\/goog\/base\.js/i,
+            "modx": /\/min\/b=.*f=.*/,
+            "mootools": /mootools/i,
+            "dojo": /dojo(\.xd)?\.js/i,
+            "scriptaculous": /scriptaculous\.js/i,
+            "disqus": /disqus.com/i,
+            'getsatisfaction': /getsatisfaction\.com\/feedback/i,
+            'wibiya': /wibiya\.com\/Loaders\//i,
+            'recaptcha': /(google\.com\/recaptcha|api\.recaptcha\.net\/)/i,
+            'mollom': /mollom\/mollom\.js/i,
+            'zenphoto': /zp-core\/js/i,
+            'gallery': /main\.php\?.*g2_.*/i,
+            'adsense': /pagead\/show_ads\.js/,
+            'xenforo': /js\/xenforo\//i,
+            'cappuccino': /Frameworks\/Objective-J\/Objective-J\.js/,
+            'avactis': /\/avactis-themes\//i,
+            'volusion': /a\/j\/javascripts\.js/,
+            'addthis': /addthis\.com\/js/,
+            'buysellads': /buysellads.com\/.*bsa\.js/,
+            'weebly': /weebly\.com\/weebly\//,
+            'bootstrap': /bootstrap-.*\.js/,
+            'jigsy': /javascripts\/asterion\.js/,
+            'yola': /analytics\.yola\.net/,
+            'alfresco': /(alfresco)+(-min)?(\/scripts\/menu)?\.js/
         };
 
+        jQuery("script").each(function(idx, elem) {
 
-        // @ref http://emberjs.com
-        // @example http://emberjs.com/examples/todos/
-        versions["Ember"] = function() {
-            return {
-                name: "EmberJS",
-                url: "http://emberjs.com/",
-                version: window.Ember.VERSION
-            };
+            var src = jQuery(elem).attr("src");
+            if (typeof src !== "undefined") {
+
+                src = src.toLowerCase();
+
+                for (var i in tests) {
+
+                    if (i in retval) continue;
+                    var match = tests[i].exec(src);
+                    if (match !== null) retval[i.toLowerCase()] = "";
+
+                }
+            }
+        });
+
+        return retval;
+
+    }
+
+    function textTests(retval) {
+
+        // From https://github.com/nqbao/chromesniffer
+        var tests = {
+            'smf': /<script .+\s+var smf_/i,
+            'magento': /var BLANK_URL = '[^>]+js\/blank\.html'/i,
+            'tumblr': /<iframe src=("|')http:\/\/\S+\.tumblr\.com/i,
+            'wordpress': /<link rel=("|')stylesheet("|') [^>]+wp-content/i,
+            'closure': /<script[^>]*>.*goog\.require/i,
+            'liferay': /<script[^>]*>.*LifeRay\.currentURL/i,
+            'vbulletin': /vbmenu_control/i,
+            'modx': /(<a[^>]+>Powered by MODx<\/a>|var el= \$\('modxhost'\);|<script type=("|')text\/javascript("|')>var MODX_MEDIA_PATH = "media";)/i,
+            'minibb': /<a href=("|')[^>]+minibb.+\s*<!--End of copyright link/i,
+            'phpfusion': /(href|src)=["']?infusions\//i,
+            'openx': /(href|src)=["'].*delivery\/(afr|ajs|avw|ck)\.php[^"']*/,
+            'getsatisfaction': /asset_host\s*\+\s*"javascripts\/feedback.*\.js/igm, // better recognization
+            'contao': /powered by (TYPOlight|Contao)/i,
+            'moodle' : /<link[^>]*\/theme\/standard\/styles.php".*>|<link[^>]*\/theme\/styles.php\?theme=.*".*>/,
+            'opencms' : /<link[^>]*\.opencms\..*?>/i,
+            'humanstxt': /<link[^>]*rel=['"]?author['"]?/i,
+            "webfonts": /ref=["']?http:\/\/fonts.googleapis.com\//i,
+            'prostores' : /-legacycss\/Asset">/,
+            "oscommerce": /(product_info\.php\?products_id|_eof \/\/-->)/,
+            "opencart": /index.php\?route=product\/product/,
+            "shibboleth": /<form action="\/idp\/Authn\/UserPassword" method="post">/
         };
 
-        // No version for EnyoJS yet
-        // @ref http://enyojs.com
-        versions["enyo"] = function() {
-            return {
-                name: "EnyoJS",
-                url: "http://enyojs.com/",
-                version: ""
-            };
+        var content = jQuery("html").html();
+
+        for (var i in tests) {
+
+            if (i in retval) continue;
+            var match = tests[i].exec(content);
+            if (match !== null) retval[i.toLowerCase()] = "";
+
+        }
+
+        return retval;
+    }
+
+    function jsTests(retval) {
+
+        var v = {
+
+            "_": function() { return window._.VERSION },
+            "_gaq": function() { return "" },
+            "angular": function() { return window.angular.version.full },
+            "Backbone": function() { return window.Backbone.VERSION },
+            "Batman": function() { return window.Batman.version },
+            "brightcove": function() { return "" },
+            "can": function() { return "" },
+            "Cufon": function() { return "" },
+            "d3": function() { return window.d3.version },
+            "dojo": function() { return window.dojo.version.toString() },
+            "Drupal": function() { return "" },
+            "Ember": function() { return window.Ember.VERSION },
+            "enyo": function() { return "" },
+            "Ext": function() { return window.Ext.version },
+            "facebox": function() { return "" },
+            "fancybox": function() { return "" },
+            "FB": function() { return "" },
+            "flowplayer": function() { return "" },
+            "google.load": function() { return "" },
+            "google.maps": function() { return window.google.maps.version },
+            "Handlebars": function() { return window.Handlebars.VERSION },
+            "Highcharts": function() { return window.Highcharts.version },
+            "io": function() { return window.io.version },
+            "jQuery": function() { return window.jQuery.fn.jquery },
+            "jQuery.ui": function() { return window.jQuery.ui.version },
+            "ko": function() { return window.ko.version },
+            "Meteor": function() { return "" },
+            "MochiKit": function() { return window.MochiKit.Base.VERSION },
+            "Modernizr": function() { return window.Modernizr._version },
+            "MooTools": function() { return window.MooTools.version },
+            "nivoSlider": function() { return "" },
+            "PDFJS": function() { return window.PDFJS.version },
+            "Processing": function() { return window.Processing.version },
+            "Prototype": function() { return window.Prototype.Version },
+            "Raphael": function() { return window.Raphael.version },
+            "requirejs": function() { return window.requirejs.version },
+            "s.t": function() { return "" },
+            "sIFR": function() { return "" },
+            "Scriptaculous": function() { return window.Scriptaculous.Version },
+            "scrollTo": function() { return "" },
+            "Spine": function() { return window.Spine.version },
+            "SproutCore": function() { return "" },
+            "superfish": function() { return "" },
+            "swfobject": function() { return "" },
+            "turn": function() { return "" },
+            "twttr": function() { return "" },
+            "Typekit": function() { return "" },
+            "webfonts": function() { return "" },
+            "YUI": function() { return window.YUI().version },
+            "Zepto": function() { return "" }
+
         };
 
-        // @ref http://www.sencha.com/products/extjs
-        // @example http://www.sencha.com/products/extjs
-        versions["Ext"] = function() {
-            return {
-                name: "ExtJS",
-                url: "http://www.sencha.com/products/extjs",
-                version: window.Ext.version
-            };
-        };
-
-        // @ref http://handlebarsjs.com/
-        // @example http://tryhandlebarsjs.com/
-        versions["Handlebars"] = function() {
-            return {
-                name: "Handlebars",
-                url: "http://handlebarsjs.com/",
-                version: window.Handlebars.VERSION
-            };
-        };
-
-        // @ref http://socket.io/
-        // @example http://divergentcoder.com/Chat/
-        versions["io"] = function() {
-            return {
-                name: "Socket.IO",
-                url: "http://socket.io/",
-                version: window.io.version
-            };
-        };
-
-        // @ref http://jquery.com
-        // @example http://jquery.com
-        versions["jQuery"] = function() {
-            return {
-                name: "jQuery",
-                url: "http://jquery.com",
-                version: window.jQuery.fn.jquery
-            };
-        };
-
-        // @ref http://jqueryui.com
-        versions["jQuery.ui"] = function() {
-            return {
-                name: "jQuery UI",
-                url: "http://jqueryui.com",
-                version: window.jQuery.ui.version
-            };
-        };
-
-        // @ref http://mochi.github.com/mochikit/
-        // @example http://mochi.github.com/mochikit/about.html
-        versions["MochiKit"] = function() {
-            return {
-                name: "MochiKit",
-                url: "http://mochi.github.com/mochikit/",
-                version: window.MochiKit.Base.VERSION
-            };
-        };
-
-        // @ref http://modernizr.com
-        // @example http://modernizr.com
-        versions["Modernizr"] = function() {
-            return {
-                name: "Modernizr",
-                url: "http://modernizr.com",
-                version: window.Modernizr._version
-            };
-        };
-
-        // @ref http://mootools.net
-        // @example http://mootools.net
-        versions["MooTools"] = function() {
-            return {
-                name: "MooTools",
-                url: "http://mootools.net",
-                version: window.MooTools.version
-            };
-        };
-
-        // @ref https://github.com/mozilla/pdf.js
-        // @example http://mozilla.github.com/pdf.js/web/viewer.html
-        versions["PDFJS"] = function() {
-            return {
-                name: "PDF.js",
-                url: "https://github.com/mozilla/pdf.js",
-                version: window.PDFJS.version
-            };
-        };
-
-        // @ref http://processingjs.org
-        // @example http://processingjs.org
-        versions["Processing"] = function() {
-            return {
-                name: "Processing",
-                url: "http://processingjs.org",
-                version: window.Processing.version
-            };
-        };
-
-        // @ref http://prototypejs.org/
-        // @example https://www.airasiamegastore.com/
-        versions["Prototype"] = function() {
-            return {
-                name: "Prototype",
-                url: "http://prototypejs.org",
-                version: window.Prototype.Version
-            };
-        };
-
-        // @ref http://raphaeljs.com/
-        // @example http://raphaeljs.com/
-        versions["Raphael"] = function() {
-            return {
-                name: "Raphaël",
-                url: "http://raphaeljs.com",
-                version: window.Raphael.version
-            };
-        };
-
-        // @ref http://requirejs.org/
-        // @example http://hallmark.com/
-        versions["requirejs"] = function() {
-            return {
-                name: "RequireJS",
-                url: "http://requirejs.org",
-                version: window.requirejs.version
-            };
-        };
-
-        // @ref http://script.aculo.us
-        // @example https://www.airasiamegastore.com/
-        versions["Scriptaculous"] = function() {
-            return {
-                name: "Scriptaculous",
-                url: "http://script.aculo.us",
-                version: window.Scriptaculous.Version
-            };
-        };
-
-        // @ref http://sproutcore.com
-        // @example http://sproutcore.com
-        versions["SproutCore"] = function() {
-            return {
-                name: "SproutCore",
-                url: "http://sproutcore.com/",
-                version: ""
-            };
-        };
-
-        // @ref http://code.google.com/p/swfobject/
-        // @example http://www.bobbyvandersluis.com/swfobject/testsuite_2_2/test_dynamic.html
-        versions["swfobject"] = function() {
-            return {
-                name: "swfobject",
-                url: "http://code.google.com/p/swfobject/",
-                version: ""
-            };
-        };
-
-        // @ref http://yuilibrary.com
-        // @example http://yuilibrary.com
-        versions["YUI"] = function() {
-            return {
-                name: "Yahoo! UI Library",
-                url: "http://www.yuilibrary.com",
-                version: window.YUI().version
-            };
-        };
-
-        // @ref http://underscorejs.org
-        // @example http://underscorejs.org
-        versions["_"] = function() {
-            return {
-                name: "Underscore.JS",
-                url: "http://underscorejs.org/",
-                version: window._.VERSION
-            };
-        };
-
-        var retval = [],
-            objs = ["angular", "Backbone", "d3", "dojo", "Ember", "Ext", "Handlebars", "io", "MochiKit", "Modernizr", "MooTools", "PDFJS", "Prototype", "jQuery.ui", "Scriptaculous", "SproutCore", "swfobject"],
-            funs = ["_", "jQuery", "Processing", "Raphael", "requirejs", "YUI"];
+        var objs = ["_gaq", "angular", "Backbone", "brightcove", "can", "d3", "dojo", "Drupal", "Ember", "Ext", "FB",
+            "google.maps", "Handlebars", "Highcharts", "ko", "io", "Meteor", "MochiKit", "Modernizr", "MooTools", "PDFJS",
+            "Prototype", "jQuery.ui", "Scriptaculous", "sIFR", "Spine", "SproutCore", "swfobject", "twttr", "Typekit"],
+            funs = ["_", "Batman", "Cufon", "google.load", "jQuery", "Processing", "Raphael", "requirejs", "s.t", "webfonts",
+            "YUI", "Zepto"],
+            jqPlugins = ["facebox", "fancybox", "flowplayer", "nivoSlider", "scrollTo", "superfish", "turn"];
 
         for (var i in objs) {
 
@@ -263,9 +302,10 @@ exports.Sniffer = function() {
             if (objs[i].indexOf(".") >= 0) {
 
                 var splits = objs[i].split(".");
-                if (typeof window[splits[0]] !== "undefined" && window[splits[0]][splits[1]] === "object") retval.push(versions[objs[i]]());
+                if (typeof window[splits[0]] !== "undefined" && typeof window[splits[0]][splits[1]] === "object")
+                    retval[objs[i]] = v[objs[i]]();
 
-            } else if (typeof window[objs[i]] === "object") retval.push(versions[objs[i]]());
+            } else if (typeof window[objs[i]] === "object") retval[objs[i].toLowerCase()] = v[objs[i]]();
 
         }
 
@@ -276,35 +316,19 @@ exports.Sniffer = function() {
             if (funs[i].indexOf(".") >= 0) {
 
                 var splits = funs[i].split(".");
-                if (typeof window[splits[0]] !== "undefined" && window[splits[0]][splits[1]] === "function") retval.push(versions[funs[i]]());
+                if (typeof window[splits[0]] !== "undefined" && typeof window[splits[0]][splits[1]] === "function")
+                    retval[funs[i]] = v[funs[i]]();
 
-            } else if (typeof window[funs[i]] === "function") retval.push(versions[funs[i]]());
+            } else if (typeof window[funs[i]] === "function") retval[funs[i].toLowerCase()] = v[funs[i]]();
 
         }
 
+        if (typeof window["jQuery"] === "function") for (var i in jqPlugins)
+                if (typeof window["jQuery"]["fn"][jqPlugins[i]] === "function")
+                    retval[jqPlugins[i].toLowerCase()] = v[jqPlugins[i]]();
+
         return retval;
 
-    };
-
-    this.isWordpress = function(page) {
-
-        page.evaluate(function() {
-
-            $("link").forEach(function(idx, elem) {
-
-                if (html.indexOf("wp-content"))  {
-
-
-
-
-                };
-
-            });
-
-        });
-
-    };
-
-    return self;
+    }
 
 }

@@ -5,6 +5,7 @@ exports.parse = function() {
 
     var flags = {
         "debug": false,
+        "sniff": false,
         "prefix": "\t\t",
         "sort-by": 0,
         "silent": false,
@@ -114,6 +115,7 @@ exports.parse = function() {
             else if (arg === "-r") flags["print-redirects"] = true;
             else if (arg === "-d") flags["same-domain"] = true;
             else if (arg === "-debug") flags["debug"] = true;
+            else if (arg === "-sniff") flags["sniff"] = true;
             else if (arg.charAt(0) !== "-" && i > 0) url = arg.trim();
 
         });
