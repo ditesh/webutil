@@ -357,7 +357,17 @@ var callback = function(status) {
 
         if (flags["har-path"].length > 0) {
 
-            har = helper.createHAR(url, title, summary["load-time"], summary["on-dom-content-loaded"], new Date(startTime), assets);
+            var har = helper.createHAR({
+                url: url,
+                title: title
+            }, {
+                "on-load-time": summary["load-time"],
+                "on-content-loaded-time": summary["on-dom-content-loaded"],
+                "start-time": new Date(startTime)
+            }, {
+                "assets": assets,
+                "serialized-assets": serializedAssets
+            });
             fs.write(flags["har-path"], JSON.stringify(har), "w");
 
         }

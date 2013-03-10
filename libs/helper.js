@@ -57,13 +57,20 @@ exports.log = function(data) {
     else console.log(JSON.stringify(data));
 };
 
-exports.createHAR = function(url, title, onload, oncontentload, startTime, assets) {
+exports.createHAR = function(page, timings, data) {
 
-    var entries = [];
+    var url = page["url"],
+        title = page["title"];
+        onLoad = timings["on-load-time"],
+        onContentLoad= timings["on-content-loaded-time"],
+        startTime = timings["start-time"],
+        assets = data["assets"],
+        serializedAssets = data["serialized-assets"],
+        entries = [];
 
-    for (var i in assets) {
+    for (var i in serializedAssets) {
 
-        var res = assets[i],
+        var res = assets[serializedAssets[i]],
             req = res["request"],
             startres = res["start-response"];
             endres = res["end-response"],
@@ -79,6 +86,8 @@ exports.createHAR = function(url, title, onload, oncontentload, startTime, asset
             resStartTime = startres["time"].getTime();
 
         }
+
+        var cookies = getCookies(endres["headers"]);
 
         entries.push({
             "startedDateTime": req["time"].toISOString(),
@@ -97,7 +106,7 @@ exports.createHAR = function(url, title, onload, oncontentload, startTime, asset
                 "status": endres["status"],
                 "statusText": endres["statusText"],
                 "httpVersion": "HTTP/1.1",
-                "cookies": [],
+                "cookies": cookies,
                 "headers": endres["headers"],
                 "redirectURL": "",
                 "headersSize": -1,
@@ -135,12 +144,63 @@ exports.createHAR = function(url, title, onload, oncontentload, startTime, asset
                     "id": "pageref",
                     "title": title,
                     "pageTimings": {
-                        "onContentLoad": oncontentload,
-                        "onLoad": onload,
+                        "onContentLoad": onContentLoad,
+                        "onLoad": onLoad,
                     },
                 }
             ],
             "entries": entries,
         }
     };
+
+    // Adapted from https://github.com/danjordan/cookie-parser
+    function getCookies(headers) {
+
+        var retval = [],
+            attributes = ['name', 'value', 'expires', 'path', 'domain', 'secure', 'httponly'];
+
+        for (var i in headers) {
+
+            var header = headers[i];
+            if (header["name"].toLowerCase() !== "set-cookie") continue;
+
+            // Hack for cookies with same header name
+            header = header["value"].split("\n");
+
+            for (var j in header) {
+
+                var cookie = {};
+                var params = header[j].split(';');
+
+                params.forEach(function(param) {
+
+                    param = param.trim().split('=');
+                    var key = param[0];
+                    var lckey = key.toLowerCase();
+                    var value = true;
+
+                    if (param.length === 2) value = param[1];
+
+                    if (attributes.indexOf(lckey) > 0) {
+
+                        if (lckey === 'expires') cookie[key] = new Date(value);
+                        else if (lckey === 'httponly') cookie["httpOnly"] = true;
+                        else cookie[key] = value;
+
+                    } else {
+
+                        cookie["name"] = key;
+                        cookie["value"] = value;
+
+                    }
+                });
+
+                retval.push(cookie);
+
+            }
+        }
+
+        return retval;
+
+    }
 }

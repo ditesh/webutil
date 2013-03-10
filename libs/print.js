@@ -211,6 +211,7 @@ exports.help = function() {
     console.log("\t-timeout: specify timeout in seconds (default 30 seconds)");
     console.log("\t-username: specify username for HTTP authentication");
     console.log("\t-password: specify password for HTTP authentication");
+    console.log("\t-cookies-path: specify path to cookies file to be added to the request");
     console.log("");
 
 };

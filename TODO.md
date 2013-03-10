@@ -6,8 +6,8 @@
 - [x] invalid header check
 - [x] Detect multiple jquerys/prototypes etc
 - [x] Add CMS sniffer
+- [x] Fix HAR support
 - [ ] caching information
-- [ ] Fix HAR support
 - [ ] Cookie support
 - [ ] Spriting support
 - [ ] Add license to all files

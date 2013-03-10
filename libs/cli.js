@@ -1,4 +1,5 @@
-var system = require("system"),
+var fs = require("fs"),
+    system = require("system"),
     skip = false;
 
 exports.parse = function() {
@@ -104,6 +105,30 @@ exports.parse = function() {
                 skip = true;
                 arg = parseArg(i);
                 webpage.settings.password = arg;
+
+            } else if (arg === "-cookies-path") {
+
+                skip = true;
+                arg = parseArg(i);
+
+                if (fs.exists(arg) === false || fs.isFile(arg) === false) printHelp();
+                
+                var cookies = fs.read(arg);
+
+                try {
+                    cookies = JSON.parse(cookies);
+                } catch (e) {
+                    console.log(e);
+                    printHelp();
+                }
+
+                if (Array.isArray(cookies) === false) printHelp();
+
+                for (var i in cookies) {
+                    
+                    helper.log(phantom.addCookie(cookies[i]));
+
+                }
 
             } else if (arg === "-sa") flags["sort-by"] |= 2;
             else if (arg === "-sd") flags["sort-by"] |= 4;
