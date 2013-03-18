@@ -6,8 +6,6 @@ var helper = require("./libs/helper"), webpage = require("webpage").create(),
     headers = new (require("./libs/headers").Headers),
     cpa = require("./libs/cpa");
 
-print.header();
-
 // Set a timeout to avoid long lived pages
 // (eg those that don't fire the onLoad event or
 // those with nasty javascript)
