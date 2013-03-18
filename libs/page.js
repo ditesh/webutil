@@ -21,6 +21,7 @@ var summary = {
                 "UTF-8": 0,
                 "ISO-8859-1": 0,
                 "others": 0,
+                "not-specified": 0,
             }
         },
         "total-size": 0,
@@ -182,6 +183,12 @@ var callback = function(status) {
 
     if (status === "success") {
 
+        if (flags["cpai"]) {
+
+            cpa.analyze(serializedAssets, assets);
+
+        }
+
         var types = {}, urls = [], url = cli["url-parts"], redirects = [], breakdown = {};
 
         // Get latency for first byte response
@@ -217,13 +224,17 @@ var callback = function(status) {
 
                 for (var d in flags["equivalent-domains"]) {
 
-                    var matchurl = flags["equivalent-domains"][d].toLowerCase();
+                    if (flags["equivalent-domains"].hasOwnProperty(d)) {
 
-                    if (helper.parseURL(assetURL)["host"].indexOf(matchurl) >= 0) {
+                        var matchurl = flags["equivalent-domains"][d].toLowerCase();
+                        var parsedURL = helper.parseURL(assetURL);
 
-                        nomatches = false;
-                        break;
+                        if ("host" in parsedURL && parsedURL["host"].indexOf(matchurl) >= 0) {
 
+                            nomatches = false;
+                            break;
+
+                        }
                     }
                 }
 
@@ -279,6 +290,7 @@ var callback = function(status) {
 
                 urls.push({
                     
+                    "id": asset["request"]["id"],
                     "url": assetURL,
                     "content-type": (offset > 0) ? type.substr(0, offset) : type,
                     "size": (asset["start-response"]["bodySize"] !== null) ? asset["start-response"]["bodySize"] : 0,
@@ -305,7 +317,7 @@ var callback = function(status) {
 
                     type = type.substr(0, offset);
 
-                } else summary["counts"]["encodings"]["others"] += 1;
+                } else summary["counts"]["encodings"]["not-specified"] += 1;
 
                 if (type === null) type = "unspecified", summary["counts"]["resources"]["others"] += 1;
                 else if (type.trim().length === 0) type = "unspecified", summary["counts"]["resources"]["others"] += 1;
