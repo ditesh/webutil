@@ -5,6 +5,42 @@ command -v optipng >/dev/null 2>&1 || { echo >&2 "I require optipng but it's not
 command -v uglifyjs >/dev/null 2>&1 || { echo >&2 "I require uglifyjs but it's not installed.  Aborting."; }
 command -v phantomjs >/dev/null 2>&1 || { echo >&2 "I require phantomjs but it's not installed.  Aborting."; }
 
+# Let's set up the support functions first
+function download {
+    wget -q --user-agent="$USERAGENT" -P "$TMPDIR/$1/pre-processed" --input-file="$TMPDIR/${1}files.txt"
+    cp $TMPDIR/$1/pre-processed/* $TMPDIR/$1/pre-processed-gzip
+    gzip $TMPDIR/$1/pre-processed-gzip/*
+}
+
+function post_processing {
+    cp $TMPDIR/$1/post-processed/* $TMPDIR/$1/post-processed-gzip
+    gzip $TMPDIR/$1/post-processed-gzip/*
+}
+
+function count {
+    echo `ls "$TMPDIR/$1/pre-processed" | wc -l`
+}
+
+function presize {
+
+    if [ $# -eq 2 ]; then PRE=`du -b "$TMPDIR/$1/pre-processed-gzip" | awk '{ print $1 }'`;
+    else PRE=`du -b "$TMPDIR/$1/pre-processed" | awk '{ print $1 }'`;
+    fi
+
+    PRE=`echo $PRE/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    echo $PRE
+}
+
+function postsize {
+
+    if [ $# -eq 2 ]; then POST=`du -b "$TMPDIR/$1/post-processed-gzip" | awk '{ print $1 }'`;
+    else POST=`du -b "$TMPDIR/$1/post-processed" | awk '{ print $1 }'`
+    fi
+
+    POST=`echo $POST/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    echo $POST
+}
+
 JS=false
 GIF=false
 JPG=false
@@ -12,18 +48,24 @@ PNG=false
 CSS=false
 TMPDIR="/tmp/webutil"
 
+# Set up folders
 rm -rf $TMPDIR
-mkdir -p "$TMPDIR/png/pre" "$TMPDIR/png/post" "$TMPDIR/jpg/pre" "$TMPDIR/jpg/post" "$TMPDIR/gif/pre"
-mkdir -p "$TMPDIR/gif/post" "$TMPDIR/css/pre" "$TMPDIR/css/post" "$TMPDIR/js/pre" "$TMPDIR/js/post"
+types=( png jpeg gif css javascript )
 
-echo "Web Optimization Tool 1.0 (c) 2013 Ditesh Gathani <ditesh@gathani.org>"
+for i in "${types[@]}"; do
+    mkdir -p "$TMPDIR/$i/pre-processed" "$TMPDIR/$i/pre-processed-gzip" \
+    "$TMPDIR/$i/post-processed" "$TMPDIR/$i/post-processed-gzip" 
+done
+
+echo "Web Optimization Tool 1.0.1 (c) 2013 Ditesh Gathani <ditesh@gathani.org>"
 echo
 echo -n "Running webutil ... "
 OUTPUT=`phantomjs ./webutil.js -d -u -s $@`
 
-if [ "$?" -ne "0" ] ; then echo "unable to connect";
-echo
-exit 1
+if [ "$?" -ne "0" ] ; then
+    echo "unable to connect";
+    echo
+    exit 1
 fi
 
 if $(echo $@ | grep -q "\-ua ipad"); then
@@ -44,18 +86,13 @@ OLDIFS=$IFS
 IFS=$'\n'
 for i in $OUTPUT; do
 
-    if $( echo $i | awk '{print $1}' | grep --quiet "png" ); then
-        echo $i | awk '{print $3}' >> $TMPDIR/pngfiles.txt
-    elif $( echo $i | awk '{print $1}' | grep --quiet "jpg\|jpeg" ); then
-        echo $i | awk '{print $3}' >> $TMPDIR/jpgfiles.txt
-    elif $( echo $i | awk '{print $1}' | grep --quiet "gif" ); then
-        echo $i | awk '{print $3}' >> $TMPDIR/giffiles.txt
-    elif $( echo $i | awk '{print $1}' | grep --quiet "css" ); then
-        echo $i | awk '{print $3}' >> $TMPDIR/cssfiles.txt
-    elif $( echo $i | awk '{print $1}' | grep --quiet "javascript" ); then
-        echo $i | awk '{print $3}' >> $TMPDIR/jsfiles.txt
-    fi
+    for j in "${types[@]}"; do
 
+        if $( echo $i | awk '{print $2}' | grep --quiet "$j" ); then
+            echo $i | awk '{print $4}' >> "$TMPDIR/${j}files.txt"
+        fi
+
+    done
 done
 
 echo "done."
@@ -64,71 +101,57 @@ echo -n "Checking for PNG files ... "
 if [ -f "$TMPDIR/pngfiles.txt" ]; then
 
     echo -n "found ... downloading ... "
-    wget -q --user-agent="$USERAGENT" -P "$TMPDIR/png/pre" --input-file="$TMPDIR/pngfiles.txt"
+    download png
 
     echo -n "optimizing ... "
-    optipng -quiet -o 9 -dir "$TMPDIR/png/post" $TMPDIR/png/pre/*
+    optipng -quiet -o 9 -dir $TMPDIR/png/post-processed $TMPDIR/png/pre-processed/*
     echo "done."
 
+    post_processing png
+
     PNG=true
-    PNGCOUNT=`ls $TMPDIR/png/pre | wc -l`
-    PNGPRE=`du -b $TMPDIR/png/pre | awk '{ print $1 }'`
-    PNGPOST=`du -b $TMPDIR/png/post | awk '{ print $1 }'`
-    PNGPRE=`echo $PNGPRE/1024 | bc | sed -E 's/^(-?)\./\10./'`
-    PNGPOST=`echo $PNGPOST/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    PNGCOUNT=$(count png);
+    PNGPRE=$(presize png);
+    PNGPOST=$(postsize png);
     PNGDIFF=`echo "$PNGPRE-$PNGPOST" | bc | sed -E 's/^(-?)\./\10./'`
     PNGPER=`echo "scale=2;100*$PNGDIFF/$PNGPRE" | bc | sed -E 's/^(-?)\./\10./'`
 
-    gzip $TMPDIR/png/pre/*
-    gzip $TMPDIR/png/post/*
-    PNGPRE_COMPRESSED=`du -b $TMPDIR/png/pre | awk '{ print $1 }'`
-    PNGPOST_COMPRESSED=`du -b $TMPDIR/png/post | awk '{ print $1 }'`
-    PNGPRE_COMPRESSED=`echo $PNGPRE_COMPRESSED/1024 | bc | sed -E 's/^(-?)\./\10./'`
-    PNGPOST_COMPRESSED=`echo $PNGPOST_COMPRESSED/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    PNGPRE_COMPRESSED=$(presize png compressed)
+    PNGPOST_COMPRESSED=$(postsize png compressed)
     PNGDIFF_COMPRESSED=`echo "$PNGPRE_COMPRESSED-$PNGPOST_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
     PNGPER_COMPRESSED=`echo "scale=2;100*$PNGDIFF_COMPRESSED/$PNGPRE_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
-    gunzip $TMPDIR/png/pre/*
-    gunzip $TMPDIR/png/post/*
 
 else echo "not found."
 fi
 
 echo -n "Checking for JPG files ... "
-if [ -f "$TMPDIR/jpgfiles.txt" ]; then
+if [ -f "$TMPDIR/jpegfiles.txt" ]; then
 
     echo -n "found ... downloading ... "
-    `wget -q --user-agent $USERAGENT -q -P "$TMPDIR/jpg/pre" --input-file="$TMPDIR/jpgfiles.txt"`
+    download jpeg
 
     echo -n "optimizing ... "
-    for i in `ls $TMPDIR/jpg/pre/*`; do
+    for i in `ls $TMPDIR/jpeg/pre-processed/*`; do
 
         i=`echo $i | xargs -0 -n1 basename`
-        jpegtran -optimize -copy none "$TMPDIR/jpg/pre/$i" > "$TMPDIR/jpg/post/$i";
+        jpegtran -optimize -copy none "$TMPDIR/jpeg/pre-processed/$i" > "$TMPDIR/jpeg/post-processed/$i";
 
     done
     echo "done."
 
+    post_processing jpeg
+
     JPG=true
-    JPGCOUNT=`ls $TMPDIR/jpg/pre | wc -l`
-    JPGPRE=`du -b $TMPDIR/jpg/pre | awk '{ print $1 }'`
-    JPGPOST=`du -b $TMPDIR/jpg/post | awk '{ print $1 }'`
-    JPGPRE=`echo $JPGPRE/1024 | bc | sed -E 's/^(-?)\./\10./'`
-    JPGPOST=`echo $JPGPOST/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    JPGCOUNT=$(count jpeg);
+    JPGPRE=$(presize jpeg);
+    JPGPOST=$(postsize jpeg);
     JPGDIFF=`echo "$JPGPRE-$JPGPOST" | bc | sed -E 's/^(-?)\./\10./'`
     JPGPER=`echo "scale=2;100*$JPGDIFF/$JPGPRE" | bc | sed -E 's/^(-?)\./\10./'`
 
-    gzip $TMPDIR/jpg/pre/*
-    gzip $TMPDIR/jpg/post/*
-
-    JPGPRE_COMPRESSED=`du -b $TMPDIR/jpg/pre | awk '{ print $1 }'`
-    JPGPOST_COMPRESSED=`du -b $TMPDIR/jpg/post | awk '{ print $1 }'`
-    JPGPRE_COMPRESSED=`echo $JPGPRE_COMPRESSED/1024 | bc | sed -E 's/^(-?)\./\10./'`
-    JPGPOST_COMPRESSED=`echo $JPGPOST_COMPRESSED/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    JPGPRE_COMPRESSED=$(presize jpeg compressed);
+    JPGPOST_COMPRESSED=$(postsize jpeg compressed);
     JPGDIFF_COMPRESSED=`echo "$JPGPRE_COMPRESSED-$JPGPOST_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
     JPGPER_COMPRESSED=`echo "scale=2;100*$JPGDIFF_COMPRESSED/$JPGPRE_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
-
-    gunzip $TMPDIR/jpg/pre/*
-    gunzip $TMPDIR/jpg/post/*
 
 else echo "not found."
 fi
@@ -137,43 +160,37 @@ echo -n "Checking for GIF files ... "
 if [ -f "$TMPDIR/giffiles.txt" ]; then
 
     echo -n "found ... downloading ... "
-    `wget -q --user-agent $USERAGENT -q -P "$TMPDIR/gif/pre" --input-file="$TMPDIR/giffiles.txt"`
+    download gif
 
     echo -n "optimizing ... "
-    for i in `ls $TMPDIR/gif/pre/*`; do
+    for i in `ls $TMPDIR/gif/pre-processed/*`; do
 
         i=`echo $i | xargs -0 -n1 basename`
-        RETVAL=`optipng -o 9 -out "$TMPDIR/gif/post/$i.png" "$TMPDIR/gif/pre/$i"`
+        RETVAL=`optipng -o 9 -out "$TMPDIR/gif/post-processed/$i.png" "$TMPDIR/gif/pre-processed/$i"`
 
         if [[ "$?" -ne "0" || $(echo $RETVAL | grep "increase") ]]; then
 
-            rm -f "$TMPDIR/gif/post/$i.png"
-            cp "$TMPDIR/gif/pre/$i" "$TMPDIR/gif/post/$i"
+            rm -f "$TMPDIR/gif/post-processed/$i.png"
+            cp "$TMPDIR/gif/pre-processed/$i" "$TMPDIR/gif/post-processed/$i"
 
         fi
 
     done
     echo "done."
 
+    post_processing gif
+
     GIF=true
-    GIFCOUNT=`ls $TMPDIR/gif/pre | wc -l`
-    GIFPRE=`du -b $TMPDIR/gif/pre | awk '{ print $1 }'`
-    GIFPOST=`du -b $TMPDIR/gif/post | awk '{ print $1 }'`
-    GIFPRE=`echo $GIFPRE/1024 | bc | sed -E 's/^(-?)\./\10./'`
-    GIFPOST=`echo $GIFPOST/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    GIFCOUNT=$(count gif);
+    GIFPRE=$(presize gif);
+    GIFPOST=$(postsize gif);
     GIFDIFF=`echo "$GIFPRE-$GIFPOST" | bc | sed -E 's/^(-?)\./\10./'`
     GIFPER=`echo "scale=2;100*$GIFDIFF/$GIFPRE" | bc | sed -E 's/^(-?)\./\10./'`
 
-    gzip $TMPDIR/gif/pre/*
-    gzip $TMPDIR/gif/post/*
-    GIFPRE_COMPRESSED=`du -b $TMPDIR/gif/pre | awk '{ print $1 }'`
-    GIFPOST_COMPRESSED=`du -b $TMPDIR/gif/post | awk '{ print $1 }'`
-    GIFPRE_COMPRESSED=`echo $GIFPRE_COMPRESSED/1024 | bc | sed -E 's/^(-?)\./\10./'`
-    GIFPOST_COMPRESSED=`echo $GIFPOST_COMPRESSED/1024 | bc | sed -E 's/^(-?)\./\10./'`
+    GIFPRE_COMPRESSED=$(presize gif compressed);
+    GIFPOST_COMPRESSED=$(postsize gif compressed);
     GIFDIFF_COMPRESSED=`echo "$GIFPRE_COMPRESSED-$GIFPOST_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
     GIFPER_COMPRESSED=`echo "scale=2;100*$GIFDIFF_COMPRESSED/$GIFPRE_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
-    gunzip $TMPDIR/gif/pre/*
-    gunzip $TMPDIR/gif/post/*
 
 else echo "not found."
 fi
@@ -182,67 +199,62 @@ echo -n "Checking for CSS files ... "
 if [ -f "$TMPDIR/cssfiles.txt" ]; then
 
     echo -n "found ... downloading ... "
-    wget -q --user-agent $USERAGENT -q -P "$TMPDIR/css/pre" --input-file="$TMPDIR/cssfiles.txt"
+    download css
 
     echo -n "optimizing ... "
-    for i in `ls $TMPDIR/css/pre/*`; do
+    for i in `ls $TMPDIR/css/pre-processed/*`; do
 
         i=`echo $i | xargs -0 -n1 basename`
-        csstidy "$TMPDIR/css/pre/$i" --silent=true "$TMPDIR/css/post/$i"
+        csstidy "$TMPDIR/css/pre-processed/$i" --silent=true "$TMPDIR/css/post-processed/$i"
 
     done
     echo "done."
 
+    post_processing css
+
     CSS=true
-    CSSCOUNT=`ls $TMPDIR/css/pre | wc -l`
-    CSSPRE=`du -bh $TMPDIR/css/pre | awk '{ print $1 }' | cut -d'K' -f 1`
-    CSSPOST=`du -bh $TMPDIR/css/post | awk '{ print $1 }' | cut -d'K' -f 1`
+    CSSCOUNT=$(count css);
+    CSSPRE=$(presize css);
+    CSSPOST=$(postsize css);
     CSSDIFF=`echo "$CSSPRE-$CSSPOST" | bc | sed -E 's/^(-?)\./\10./'`
     CSSPER=`echo "scale=2;100*$CSSDIFF/$CSSPRE" | bc | sed -E 's/^(-?)\./\10./'`
 
-    gzip $TMPDIR/css/pre/*
-    gzip $TMPDIR/css/post/*
-    CSSPRE_COMPRESSED=`du -bh $TMPDIR/css/pre | awk '{ print $1 }' | cut -d'K' -f 1`
-    CSSPOST_COMPRESSED=`du -bh $TMPDIR/css/post | awk '{ print $1 }' | cut -d'K' -f 1`
+    CSSPRE_COMPRESSED=$(presize css compressed);
+    CSSPOST_COMPRESSED=$(postsize css compressed);
     CSSDIFF_COMPRESSED=`echo "$CSSPRE_COMPRESSED-$CSSPOST_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
     CSSPER_COMPRESSED=`echo "scale=2;100*$CSSDIFF_COMPRESSED/$CSSPRE_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
-    gunzip $TMPDIR/css/pre/*
-    gunzip $TMPDIR/css/post/*
 
-else
-    echo "not found."
+else echo "not found."
 fi
 
 echo -n "Checking for JS files ... "
-if [ -f "$TMPDIR/jsfiles.txt" ]; then
+if [ -f "$TMPDIR/javascriptfiles.txt" ]; then
 
     echo -n "found ... downloading ... "
-    `wget -q --user-agent $USERAGENT -q -P "$TMPDIR/js/pre" --input-file="$TMPDIR/jsfiles.txt"`
+    download javascript
 
     echo -n "optimizing ..."
-    for i in `ls $TMPDIR/js/pre/*`; do
+    for i in `ls $TMPDIR/javascript/pre-processed/*`; do
 
         i=`echo $i | xargs -0 -n1 basename`
-        uglifyjs "$TMPDIR/js/pre/$i" -o "$TMPDIR/js/post/$i" -c 2> /dev/null
+        uglifyjs "$TMPDIR/javascript/pre-processed/$i" -o "$TMPDIR/javascript/post-processed/$i" -c 2> /dev/null
 
     done
     echo "done."
 
+    post_processing javascript
+
     JS=true
-    JSCOUNT=`ls $TMPDIR/js/pre | wc -l`
-    JSPRE=`du -bh $TMPDIR/js/pre | awk '{ print $1 }' | cut -d'K' -f 1`
-    JSPOST=`du -bh $TMPDIR/js/post | awk '{ print $1 }' | cut -d'K' -f 1`
+    JSCOUNT=$(count javascript);
+    JSPRE=$(presize javascript);
+    JSPOST=$(postsize javascript);
     JSDIFF=`echo "$JSPRE-$JSPOST" | bc | sed -E 's/^(-?)\./\10./'`
     JSPER=`echo "scale=2;100*$JSDIFF/$JSPRE" | bc | sed -E 's/^(-?)\./\10./'`
 
-    gzip $TMPDIR/js/pre/*
-    gzip $TMPDIR/js/post/*
-    JSPRE_COMPRESSED=`du -bh $TMPDIR/js/pre | awk '{ print $1 }' | cut -d'K' -f 1`
-    JSPOST_COMPRESSED=`du -bh $TMPDIR/js/post | awk '{ print $1 }' | cut -d'K' -f 1`
+    JSPRE_COMPRESSED=$(presize javascript compressed);
+    JSPOST_COMPRESSED=$(postsize javascript compressed);
     JSDIFF_COMPRESSED=`echo "$JSPRE_COMPRESSED-$JSPOST_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
     JSPER_COMPRESSED=`echo "scale=2;100*$JSDIFF_COMPRESSED/$JSPRE_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
-    gunzip $TMPDIR/js/pre/*
-    gunzip $TMPDIR/js/post/*
 
 else echo "not found."
 fi
@@ -293,8 +305,10 @@ TOTALPOST_COMPRESSED=`echo "scale=2;${GIFPOST_COMPRESSED-0} + ${PNGPOST_COMPRESS
 TOTALDIFF_COMPRESSED=`echo "scale=2;${GIFDIFF_COMPRESSED-0} + ${PNGDIFF_COMPRESSED-0} + ${JPGDIFF_COMPRESSED-0} + ${CSSDIFF_COMPRESSED-0} + ${JSDIFF_COMPRESSED-0}" | bc | sed -E 's/^(-?)\./\10./'`
 
 # Division by 0 check
-if [ "$TOTALPRE" != "0" ]; then TOTALPER_COMPRESSED=`echo "scale=2;100*$TOTALDIFF_COMPRESSED/$TOTALPRE_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`;
-else TOTALPER_COMPRESSED="0"
+if [ "$TOTALPRE" != "0" ]; then
+    TOTALPER_COMPRESSED=`echo "scale=2;100*$TOTALDIFF_COMPRESSED/$TOTALPRE_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`;
+else
+    TOTALPER_COMPRESSED="0"
 fi
 
 COST_COMPRESSED=`echo "scale=2; $TOTALDIFF_COMPRESSED * 1000000 * 0.19 / 1048576" | bc | sed -E 's/^(-?)\./\10./'`
@@ -304,5 +318,15 @@ echo -e $OUTPUT | column -t
 echo
 echo "AWS bandwidth savings: USD$ ${COST_COMPRESSED} per million visits"
 
+OUTPUT=`echo $@ | grep cpa`
+
+if [ $? -eq 0 ]; then
+
+    OUTPUT=`phantomjs ./webutil.js -d -s -cpai $@`
+    echo $OUTPUT
+
+fi
+
+echo $OUTPUT
 echo
 exit 0
