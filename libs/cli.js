@@ -5,6 +5,8 @@ var fs = require("fs"),
 exports.parse = function() {
 
     var flags = {
+        "cpa": false,
+        "cpai": false,
         "debug": false,
         "sniff": false,
         "prefix": "\t\t",
@@ -79,6 +81,14 @@ exports.parse = function() {
                 skip = true;
                 arg = parseArg(i);
                 flags["fully-loaded"] = parseInt(arg);
+
+            } else if (arg === "-cpa") {
+
+                flags["cpa"] = true;
+
+            } else if (arg === "-cpai") {
+
+                flags["cpai"] = true;
 
             } else if (arg === "-har") {
 
