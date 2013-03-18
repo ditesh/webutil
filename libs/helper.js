@@ -1,4 +1,5 @@
 /* Liberally ripped from phpjs.org :-)
+ * http://phpjs.org/functions/parse_url/
  */
 exports.parseURL= function(str, component) {
     // http://kevin.vanzonneveld.net
@@ -50,6 +51,56 @@ exports.parseURL= function(str, component) {
     }
     delete uri.source;
     return uri;
+}
+
+exports.basename = function (path, suffix) {
+  // http://kevin.vanzonneveld.net
+  // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+  // +   improved by: Ash Searle (http://hexmen.com/blog/)
+  // +   improved by: Lincoln Ramsay
+  // +   improved by: djmix
+  // *     example 1: basename('/www/site/home.htm', '.htm');
+  // *     returns 1: 'home'
+  // *     example 2: basename('ecra.php?p=1');
+  // *     returns 2: 'ecra.php?p=1'
+  var b = path.replace(/^.*[\/\\]/g, '');
+
+  if (typeof(suffix) == 'string' && b.substr(b.length - suffix.length) == suffix) {
+    b = b.substr(0, b.length - suffix.length);
+  }
+
+  return b;
+
+};
+
+exports.array_diff = function(arr1) {
+  // http://kevin.vanzonneveld.net
+  // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+  // +   improved by: Sanjoy Roy
+  // +    revised by: Brett Zamir (http://brett-zamir.me)
+  // *     example 1: array_diff(['Kevin', 'van', 'Zonneveld'], ['van', 'Zonneveld']);
+  // *     returns 1: {0:'Kevin'}
+  var retArr = {},
+    argl = arguments.length,
+    k1 = '',
+    i = 1,
+    k = '',
+    arr = {};
+
+  arr1keys: for (k1 in arr1) {
+    for (i = 1; i < argl; i++) {
+      arr = arguments[i];
+      for (k in arr) {
+        if (arr[k] === arr1[k1]) {
+          // If it reaches here, it was found in at least one array, so try next value
+          continue arr1keys;
+        }
+      }
+      retArr[k1] = arr1[k1];
+    }
+  }
+
+  return retArr;
 }
 
 exports.log = function(data) {
