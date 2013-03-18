@@ -1,6 +1,6 @@
 exports.header = function() {
     if (flags !== undefined && flags["silent"] === true) return;
-    console.log("webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>");
+    console.log("webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>");
 };
 
 exports.footer = function() {
@@ -85,7 +85,7 @@ exports.results = function(results) {
         });
 
         results["urls"].forEach(function(arg, i) {
-            console.log(prefix + arg["content-type"] + "\t" + arg["size"] + "\t" + arg["url"]);
+            console.log(prefix + arg["id"] + "\t" + arg["content-type"] + "\t" + arg["size"] + "\t" + arg["url"]);
         });
     }
 
