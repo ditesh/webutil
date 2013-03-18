@@ -7,6 +7,7 @@
 - [x] Detect multiple jquerys/prototypes etc
 - [x] Add CMS sniffer
 - [x] Fix HAR support
+- [ ] Add auto screen size based on user agent
 - [ ] caching information
 - [ ] Cookie support
 - [ ] Spriting support
