@@ -73,9 +73,9 @@ The `-dd` pulls up URL's by doing pattern matching on all hostnames (ie, in this
 
 The important thing to note about `-d` and `-dd` is that the numbers in the summary are reflective of the URL's analyzed.
 
-### Caching
+### Primed Cache
 
-There is an inbuilt facility to provide the exact same output, but after a certain number of reloads. This is a good way to check whether the browser is, in fact, caching the site on subsequent visits.
+There is an inbuilt facility to provide the summary but with a primed cached. This is a good way to check whether the browser is, in fact, caching the site on subsequent visits.
 
     # One execution
     $ ./wush reddit.com
@@ -103,7 +103,7 @@ There is an inbuilt facility to provide the exact same output, but after a certa
 
 When the `-c` parameter is passed, the page is reloaded the specified number of times. In the example above, the page is loaded once, and then reloaded one more time (reflecting the effect of passing `-c 1`).
 
-You can see the benefits of caching as the number of requests, page size etc drop. This is best used with `-d` or `-dd` to exclude third party embeds.
+You can see the benefits of caching as the number of requests, page size etc drop. This is best used with `-d` or `-dd` to exclude third party resources.
 
 ### Optimizing
 
