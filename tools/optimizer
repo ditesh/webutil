@@ -6,102 +6,24 @@ command -v uglifyjs >/dev/null 2>&1 || { echo >&2 "I require uglifyjs but it's n
 command -v phantomjs >/dev/null 2>&1 || { echo >&2 "I require phantomjs but it's not installed.  Aborting."; }
 
 # Let's set up the support functions first
-function download {
-    wget -q --user-agent="$USERAGENT" -P "$TMPDIR/$1/pre-processed" --input-file="$TMPDIR/${1}files.txt"
-    cp $TMPDIR/$1/pre-processed/* $TMPDIR/$1/pre-processed-gzip
-    gzip $TMPDIR/$1/pre-processed-gzip/*
-}
+CURPATH=`dirname ${0}`
+BASEPATH=`readlink -f ${CURPATH}`
+source "$BASEPATH/common.sh"
 
-function post_processing {
-    cp $TMPDIR/$1/post-processed/* $TMPDIR/$1/post-processed-gzip
-    gzip $TMPDIR/$1/post-processed-gzip/*
-}
-
-function count {
-    echo `ls "$TMPDIR/$1/pre-processed" | wc -l`
-}
-
-function presize {
-
-    if [ $# -eq 2 ]; then PRE=`du -b "$TMPDIR/$1/pre-processed-gzip" | awk '{ print $1 }'`;
-    else PRE=`du -b "$TMPDIR/$1/pre-processed" | awk '{ print $1 }'`;
-    fi
-
-    PRE=`echo $PRE/1024 | bc | sed -E 's/^(-?)\./\10./'`
-    echo $PRE
-}
-
-function postsize {
-
-    if [ $# -eq 2 ]; then POST=`du -b "$TMPDIR/$1/post-processed-gzip" | awk '{ print $1 }'`;
-    else POST=`du -b "$TMPDIR/$1/post-processed" | awk '{ print $1 }'`
-    fi
-
-    POST=`echo $POST/1024 | bc | sed -E 's/^(-?)\./\10./'`
-    echo $POST
-}
+# Basic setup
+rm -f $TMPDIR/modified-files
 
 JS=false
 GIF=false
 JPG=false
 PNG=false
 CSS=false
-TMPDIR="/tmp/webutil"
-
-# Set up folders
-rm -rf $TMPDIR
-types=( png jpeg gif css javascript )
-
-for i in "${types[@]}"; do
-    mkdir -p "$TMPDIR/$i/pre-processed" "$TMPDIR/$i/pre-processed-gzip" \
-    "$TMPDIR/$i/post-processed" "$TMPDIR/$i/post-processed-gzip" 
-done
 
 echo "Web Optimization Tool 1.0.1 (c) 2013 Ditesh Gathani <ditesh@gathani.org>"
 echo
-echo -n "Running webutil ... "
-OUTPUT=`phantomjs ./webutil.js -d -u -s $@`
-
-if [ "$?" -ne "0" ] ; then
-    echo "unable to connect";
-    echo
-    exit 1
-fi
-
-if $(echo $@ | grep -q "\-ua ipad"); then
-    USERAGENT="Mozilla/5.0(iPad; U; CPU iPhone OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B314 Safari/531.21.10";
-elif $(echo $@ | grep -q "\-ua iphone"); then
-    USERAGENT="Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543a Safari/419.3";
-elif $(echo $@ | grep -q "\-ua android"); then
-    USERAGENT="Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30";
-elif $(echo $@ | grep -q "\-ua firefox"); then
-    USERAGENT="Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:15.0) Gecko/20100101 Firefox/15.0.1"
-elif $(echo $@ | grep -q "\-ua ie"); then
-    USERAGENT="Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
-else
-    USERAGENT="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1309.0 Safari/537.17";
-fi
-
-OLDIFS=$IFS
-IFS=$'\n'
-for i in $OUTPUT; do
-
-    for j in "${types[@]}"; do
-
-        if $( echo $i | awk '{print $2}' | grep --quiet "$j" ); then
-            echo $i | awk '{print $4}' >> "$TMPDIR/${j}files.txt"
-        fi
-
-    done
-done
-
-echo "done."
 
 echo -n "Checking for PNG files ... "
-if [ -f "$TMPDIR/pngfiles.txt" ]; then
-
-    echo -n "found ... downloading ... "
-    download png
+if [ -f "$TMPDIR/png-files" ]; then
 
     echo -n "optimizing ... "
     optipng -quiet -o 9 -dir $TMPDIR/png/post-processed $TMPDIR/png/pre-processed/*
@@ -124,11 +46,8 @@ if [ -f "$TMPDIR/pngfiles.txt" ]; then
 else echo "not found."
 fi
 
-echo -n "Checking for JPG files ... "
-if [ -f "$TMPDIR/jpegfiles.txt" ]; then
-
-    echo -n "found ... downloading ... "
-    download jpeg
+echo -n "Checking for JPEG files ... "
+if [ -f "$TMPDIR/jpeg-files" ]; then
 
     echo -n "optimizing ... "
     for i in `ls $TMPDIR/jpeg/pre-processed/*`; do
@@ -157,10 +76,7 @@ else echo "not found."
 fi
 
 echo -n "Checking for GIF files ... "
-if [ -f "$TMPDIR/giffiles.txt" ]; then
-
-    echo -n "found ... downloading ... "
-    download gif
+if [ -f "$TMPDIR/gif-files" ]; then
 
     echo -n "optimizing ... "
     for i in `ls $TMPDIR/gif/pre-processed/*`; do
@@ -196,10 +112,7 @@ else echo "not found."
 fi
 
 echo -n "Checking for CSS files ... "
-if [ -f "$TMPDIR/cssfiles.txt" ]; then
-
-    echo -n "found ... downloading ... "
-    download css
+if [ -f "$TMPDIR/css-files" ]; then
 
     echo -n "optimizing ... "
     for i in `ls $TMPDIR/css/pre-processed/*`; do
@@ -228,10 +141,7 @@ else echo "not found."
 fi
 
 echo -n "Checking for JS files ... "
-if [ -f "$TMPDIR/javascriptfiles.txt" ]; then
-
-    echo -n "found ... downloading ... "
-    download javascript
+if [ -f "$TMPDIR/javascript-files" ]; then
 
     echo -n "optimizing ..."
     for i in `ls $TMPDIR/javascript/pre-processed/*`; do
@@ -318,15 +228,11 @@ echo -e $OUTPUT | column -t
 echo
 echo "AWS bandwidth savings: USD$ ${COST_COMPRESSED} per million visits"
 
-OUTPUT=`echo $@ | grep cpa`
+echo
+echo "[*] Modified Assets"
+echo
+cat "$TMPDIR/modified-files"
 
-if [ $? -eq 0 ]; then
 
-    OUTPUT=`phantomjs ./webutil.js -d -s -cpai $@`
-    echo $OUTPUT
-
-fi
-
-echo $OUTPUT
 echo
 exit 0
