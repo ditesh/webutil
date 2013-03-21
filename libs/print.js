@@ -1,6 +1,6 @@
 exports.header = function() {
     if (flags !== undefined && flags["silent"] === true) return;
-    console.log("webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>");
+    console.log(helper.title("webutil 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>"));
 };
 
 exports.footer = function() {
@@ -14,19 +14,20 @@ exports.results = function(results) {
 
     if (silent !== true) {
 
+        print.header();
         console.log("");
-        console.log("[Summary]");
-        console.log(prefix + "Requests\t" +  + results["urls"].length + " request(s), "
+        console.log(helper.header("Summary"));
+        console.log(prefix + helper.subheader("Requests") + "\t" +  + results["urls"].length + " request(s), "
                 + formatWeight(results["summary"]["total-size"])
                 + ", " + results["redirects"].length + " redirect(s)");
-        console.log(prefix + "Resources\t" + formatResources(results["summary"]["counts"]["resources"]));
+        console.log(prefix + helper.subheader("Resources") + "\t" + formatResources(results["summary"]["counts"]["resources"]));
         console.log(prefix + "\t\t" + formatResources(results["summary"]["counts"]["encodings"]));
         console.log(prefix + "\t\t" + formatResources(results["summary"]["counts"]["compression"]));
         console.log(prefix + "\t\t" + formatResources(results["summary"]["counts"]["encryption"]));
-        console.log(prefix + "Timing\t\t" + "first byte: " + results["summary"]["first-byte-time"]
+        console.log(prefix + helper.subheader("Timing") + "\t\t" + "first byte: " + results["summary"]["first-byte-time"]
                 + " ms, onDOMContentLoaded: " +results["summary"]["on-dom-content-loaded"]
                 + " ms, onLoad: " + results["summary"]["load-time"] + " ms");
-        console.log(prefix + "Errors\t\t" + "4xx: " + results["4xx-errors"].length
+        console.log(prefix + helper.subheader("Errors") + "\t\t" + "4xx: " + results["4xx-errors"].length
                 + ", 5xx: " + results["5xx-errors"].length
                 + ", JS: " + results["js-errors"].length);
 
@@ -37,7 +38,7 @@ exports.results = function(results) {
         if (silent !== true) {
 
             console.log("");
-            console.log("[Breakdown]");
+            console.log(helper.header("Breakdown"));
 
         }
 
@@ -46,12 +47,12 @@ exports.results = function(results) {
             var size = formatWeight(results["breakdown"][i]["size"]);
             var count = results["breakdown"][i]["count"];
 
-            if (count === 1) console.log(prefix + i + "\t\t  " + count + " file \t"+ size);
+            if (count === 1) console.log(prefix + helper.subheader(i) + "\t\t  " + count + " file \t"+ size);
             else {
                 
-                if (count < 10) console.log(prefix + i + "\t\t  " + count + " files\t"+ size);
-                else if (count < 100) console.log(prefix + i + "\t\t " + count + " files\t"+ size);
-                else console.log(prefix + i+ "\t\t" + count + " files\t"+ size);
+                if (count < 10) console.log(prefix + helper.subheader(i) + "\t\t  " + count + " files\t"+ size);
+                else if (count < 100) console.log(prefix + helper.subheader(i) + "\t\t " + count + " files\t"+ size);
+                else console.log(prefix + helper.subheader(i) + "\t\t" + count + " files\t"+ size);
 
             }
         }
@@ -62,7 +63,7 @@ exports.results = function(results) {
         if (silent !== true) {
 
             console.log("");
-            console.log("[URLs]");
+            console.log(helper.header("URI's"));
 
         }
 
@@ -85,7 +86,7 @@ exports.results = function(results) {
         });
 
         results["urls"].forEach(function(arg, i) {
-            console.log(prefix + arg["id"] + "\t" + arg["content-type"] + "\t" + arg["size"] + "\t" + arg["url"]);
+            console.log(prefix + arg["content-type"] + "\t" + arg["size"] + "\t" + arg["url"]);
         });
     }
 
@@ -94,7 +95,7 @@ exports.results = function(results) {
         if (silent !== true) {
 
             console.log("");
-            console.log("[JavaScript errors]");
+            console.log(helper.header("JavaScript errors"));
 
         }
 
@@ -111,12 +112,12 @@ exports.results = function(results) {
         if (silent !== true) {
 
             console.log("");
-            console.log("[Detected Libraries and Frameworks]");
+            console.log(helper.header("Detected Libraries and Frameworks"));
 
         }
 
         results["sniffer-output"].forEach(function(arg, i) {
-            console.log(prefix + arg["name"] + " " + arg["version"]);
+            console.log(prefix + "o " + arg["name"] + " " + arg["version"]);
         });
 
         if (results["sniffer-output"].length === 0) console.log(prefix + "None");
@@ -128,7 +129,7 @@ exports.results = function(results) {
         if (silent !== true) {
 
             console.log("");
-            console.log("[HTTP errors]");
+            console.log(helper.header("HTTP errors"));
 
         }
 
@@ -150,7 +151,7 @@ exports.results = function(results) {
         if (silent !== true) {
 
             console.log("");
-            console.log("[Redirects]");
+            console.log(helper.header("Redirects"));
 
         }
 

@@ -103,6 +103,18 @@ exports.array_diff = function(arr1) {
   return retArr;
 }
 
+exports.title = function(msg) {
+    return "\033[01;34m"+msg+"\033[0m";
+};
+
+exports.header= function(msg) {
+    return "\033[01;36m"+msg+"\033[0m";
+};
+
+exports.subheader= function(msg) {
+    return "\033[01;30m"+msg+"\033[0m";
+};
+
 exports.log = function(data) {
     if (typeof data === "string") console.log(data)
     else console.log(JSON.stringify(data));

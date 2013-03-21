@@ -9,7 +9,7 @@ exports.parse = function() {
         "cpai": false,
         "debug": false,
         "sniff": false,
-        "prefix": "\t\t",
+        "prefix": "",
         "sort-by": 0,
         "silent": false,
         "timeout": 30,
@@ -36,12 +36,29 @@ exports.parse = function() {
             else if (arg === "-ua") {
 
                 skip = true;
+                var width = 1366;
+                var height = 768;
                 arg = parseArg(i);
 
-                if (arg === "ipad") arg = "Mozilla/5.0(iPad; U; CPU iPhone OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B314 Safari/531.21.10";
-                else if (arg === "iphone") arg = "Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543a Safari/419.3";
-                else if (arg === "android") arg = "Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30";
-                else if (arg === "chrome") arg = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1309.0 Safari/537.17";
+                if (arg === "iphone") {
+
+                    width = 320;
+                    height = 480;
+                    arg = "Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543a Safari/419.3";
+
+                } else if (arg === "ipad") {
+
+                    width = 768;
+                    height = 1024;
+                    arg = "Mozilla/5.0(iPad; U; CPU iPhone OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B314 Safari/531.21.10";
+
+                } else if (arg === "android") {
+
+                    width = 320;
+                    height = 480;
+                    arg = "Mozilla/5.0 (Linux; U; Android 4.0.3; ko-kr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30";
+
+                } else if (arg === "chrome") arg = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1309.0 Safari/537.17";
                 else if (arg === "firefox") arg = "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:15.0) Gecko/20100101 Firefox/15.0.1";
                 else if (arg === "ie" || arg === "ie10") arg = "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)";
                 else if (arg === "ie9") arg = "Mozilla/5.0 (Windows; U; MSIE 9.0; WIndows NT 9.0; en-US))";
@@ -49,6 +66,7 @@ exports.parse = function() {
                 else if (arg === "ie7") arg = "Mozilla/4.0 (compatible; MSIE 7.0b; Windows NT 6.0)";
 
                 webpage.settings.userAgent = arg;
+                webpage.viewportSize = { width: width, height: height };
 
             } else if (arg === "-z") {
 
