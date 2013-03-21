@@ -9,6 +9,7 @@
 - [x] Fix HAR support
 - [x] Added list of files modified by optimizer
 - [x] Add auto screen size based on user agent
+- [x] Add license to all files
 - [ ] Add screen size command line option
 - [ ] Remove injected query from list of detected libs
 - [ ] Check for duplicate detections
@@ -16,5 +17,4 @@
 - [ ] caching information
 - [ ] Cookie support
 - [ ] Spriting support
-- [ ] Add license to all files
 - [ ] Critical path analysis

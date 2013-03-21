@@ -1,9 +1,11 @@
 # webutil
 
-webutil provides automatic analysis for the savvy web developer:
+webutil provides automatic website analysis for the savvy web developer:
 
 * quick glance summary of key metrics
 * HTTP and JavaScript error reporting
+* caching analysis with an empty and primed cache
+* detection of over 120 commonly used front end libraries, content management systems and third party embeds (ala What's That Site Running?)
 * automatic asset (HTML, JavaScript, CSS, images) optimization facility:
     * minification
     * compression
@@ -11,8 +13,6 @@ webutil provides automatic analysis for the savvy web developer:
     * cache header analysis
     * blocking analysis
     * optimization benefit analysis (cost and time)
-* website analysis with an empty and primed cache
-* detection of over 120 commonly used front end libraries, content management systems and third party embeds (aka What's That Site Running?)
 * header verification and analysis
 * built in user agent support with screen dimensions
 * standard `phantomjs` facilities
