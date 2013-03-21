@@ -1,6 +1,25 @@
-# webutil.js
+# webutil
 
-webutil.js is a [phantomjs](http://phantomjs.org)-based tool to analyze and optimize websites. It provides key metrics for a site, runs size and caching analysis and provides an automatic asset optimization feature.
+webutil provides automatic analysis for the savvy web developer:
+
+* quick glance summary of key metrics
+* HTTP and JavaScript error reporting
+* automatic asset (HTML, JavaScript, CSS, images) optimization facility:
+    * minification
+    * compression
+    * spriting
+    * cache header analysis
+    * blocking analysis
+    * optimization benefit analysis (cost and time)
+* website analysis with an empty and primed cache
+* detection of over 120 commonly used front end libraries, content management systems and third party embeds (aka What's That Site Running?)
+* header verification and analysis
+* built in user agent support with screen dimensions
+* standard `phantomjs` facilities
+    * screenshots
+    * HAR file generation
+
+webutil is a [phantomjs](http://phantomjs.org)-based tool.
 
 ## INSTALL
 
