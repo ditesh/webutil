@@ -5,7 +5,7 @@ webutil provides automatic website analysis for the savvy web developer. It help
 * quick glance summary of key metrics
 * HTTP and JavaScript error reporting
 * caching analysis with an empty and primed cache
-* detection of 2<sup>7</sup> commonly used front end libraries, content management systems and third party embeds (ala What's That Site Running?)
+* detection of 2<sup>7</sup> commonly used front end libraries, content management systems and third party embeds (aka What's That Site Running?)
 * automatic asset (HTML, JavaScript, CSS, images) optimization facility:
     * minification
     * compression
