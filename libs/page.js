@@ -52,9 +52,12 @@ var summary = {
             }
         },
         "total-size": 0,
-        "load-time": -1,
-        "on-dom-content-loaded": 0,
-        "first-byte-time": 0
+        "timings": {
+            "first-byte": 0,
+            "on-dom-content-loaded": 0,
+            "on-load": -1,
+            "fully-loaded": -1,
+        },
     },
     title="", count = 0, debug = flags["debug"],
     errors = {"4xx": [], "5xx": [], "js": []},
@@ -65,7 +68,7 @@ var firstbyte = false;
 
 exports.onResourceRequested = function(res) {
 
-    if (debug) helper.log("onResourceRequested: " + JSON.stringify(res));
+    if (debug) helper.log(helper.title(new Date()) + " " + helper.subheader("onResourceRequested: ") + JSON.stringify(res));
 
     var id = res["id"];
     if ((id in tempAssets) === false) tempAssets[id] = {};
@@ -75,7 +78,7 @@ exports.onResourceRequested = function(res) {
 
 exports.onResourceReceived = function(res) {
 
-    if (debug) helper.log("onResourceReceived: " + JSON.stringify(res));
+    if (debug) helper.log(helper.title(new Date()) + " " + helper.subheader("onResourceReceived: ") + JSON.stringify(res));
 
     var id = res["id"]
     if (res["stage"] === "start") tempAssets[id]["start-response"] = res;
@@ -103,7 +106,7 @@ exports.onResourceReceived = function(res) {
 
 exports.onError = function(msg, trace) {
 
-    if (debug) helper.log("onError");
+    if (debug) helper.log(helper.title(new Date()) + " " + helper.subheader("onError"));
 
     // Log errors in the webutil codebase to stdout
     if (trace.length > 0 && trace[0]["file"].substr(0, 4) !== "http") {
@@ -130,7 +133,7 @@ exports.onInitialized = function() {
 
 exports.onNavigationRequested = function(url, type, willNavigate, main) {
 
-    if (debug) helper.log("onNavigationRequested");
+    if (debug) helper.log(helper.title(new Date()) + " " + helper.subheader("onNavigationRequested"));
     if (main === true) startTime = Date.now();
 
 };
@@ -142,11 +145,11 @@ exports.onConsoleMessage = function(msg) {
 
 exports.onLoadFinished = function(status) {
 
-    if (debug) helper.log("onLoadFinished");
+    if (debug) helper.log(helper.title(new Date()) + " " + helper.subheader("onLoadFinished"));
     if (loadFinished) return;
 
     loadFinished = true;
-    summary["load-time"] = Date.now() - startTime;
+    summary["timings"]["on-load"] = Date.now() - startTime;
 
     if (flags["sniff"] === true) {
 
@@ -169,15 +172,15 @@ exports.onLoadFinished = function(status) {
 
 exports.onCallback = function(data) {
 
-    if (debug) helper.log("onCallback");
-    if (data === "DOMContentLoaded") summary["on-dom-content-loaded"] = Date.now() - startTime;
+    if (debug) helper.log(helper.title(new Date()) + " " + helper.subheader("onCallback"));
+    if (data === "DOMContentLoaded") summary["timings"]["on-dom-content-loaded"] = Date.now() - startTime;
     title = webpage.evaluate(function() { return document.title; });
 
 };
 
 exports.callback = function(status) {
 
-    if (debug) helper.log("callback with status " + status);
+    if (debug) helper.log(helper.title(new Date()) + " " + helper.subheader("Callback with status: ") + status);
 
     count += 1;
     if (count > flags["cache-retries"]) {
@@ -220,13 +223,18 @@ var callback = function(status) {
 
         var types = {}, urls = [], url = cli["url-parts"], redirects = [], breakdown = {};
 
+        // Get fully loaded timing
+        summary["timings"]["fully-loaded"]  = Date.now() - startTime;
+
         // Get latency for first byte response
+        var firstAsset = assets[serializedAssets[0]];
+
         for (var i in serializedAssets) {
 
             var firstAsset = assets[serializedAssets[i]];
             if (firstAsset["start-response"]["status"] !== 200) continue;
 
-            summary["first-byte-time"] = firstAsset["start-response"]["time"].getTime() - firstAsset["request"]["time"].getTime();
+            summary["timings"]["first-byte"] = firstAsset["start-response"]["time"].getTime() - firstAsset["request"]["time"].getTime();
             break;
 
         }
@@ -402,8 +410,8 @@ var callback = function(status) {
                 url: url,
                 title: title
             }, {
-                "on-load-time": summary["load-time"],
-                "on-content-loaded-time": summary["on-dom-content-loaded"],
+                "on-load-time": summary["timings"]["on-load"],
+                "on-content-loaded-time": summary["timings"]["on-dom-content-loaded"],
                 "start-time": new Date(startTime)
             }, {
                 "assets": assets,

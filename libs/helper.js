@@ -132,14 +132,17 @@ exports.array_diff = function(arr1) {
 }
 
 exports.title = function(msg) {
+    if (flags["silent"] === true) return msg;
     return "\033[01;34m"+msg+"\033[0m";
 };
 
 exports.header= function(msg) {
+    if (flags["silent"] === true) return msg;
     return "\033[01;36m"+msg+"\033[0m";
 };
 
 exports.subheader= function(msg) {
+    if (flags["silent"] === true) return msg;
     return "\033[01;30m"+msg+"\033[0m";
 };
 

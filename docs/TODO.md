@@ -12,9 +12,11 @@
 - [x] Add license to all files
 - [x] Remove injected query from list of detected libs
 - [x] Check for duplicate detections
+- [x] Add fully loaded in summary
 - [ ] Add screen size command line option
+- [ ] Add header check command line option
 - [ ] Add checking if png files are better as jpegs and vice versa
-- [ ] caching information
+- [ ] Caching information
 - [ ] Cookie support
 - [ ] Spriting support
 - [ ] Critical path analysis
