@@ -31,7 +31,9 @@ var fs = require("fs"),
 
 exports.parse = function() {
 
-    var flags = {
+    var url = "",
+        testflag = 0,
+        flags = {
         "cpa": false,
         "cpai": false,
         "debug": false,
@@ -201,13 +203,12 @@ exports.parse = function() {
         });
     }
 
-    var testflag = 0;
     if (flags["print-urls"] === true) testflag += 1;
     if (flags["print-breakdown"] === true) testflag += 1;
     if (flags["print-http-errors"] === true) testflag += 1;
     if (flags["print-javascript-errors"] === true) testflag += 1;
 
-    if (url === undefined || (flags["silent"] === true && testflag > 2)) {
+    if (url.length === 0 || (flags["silent"] === true && testflag > 2)) {
 
         flags["silent"] = false;
         printHelp();

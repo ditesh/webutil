@@ -55,7 +55,7 @@ exports.results = function(results) {
         console.log(prefix + helper.subheader("Timing") + "\t\t" + "first byte: " + results["summary"]["timings"]["first-byte"]
                 + " ms, onDOMContentLoaded: " +results["summary"]["timings"]["on-dom-content-loaded"]
                 + " ms, onLoad: " + results["summary"]["timings"]["on-load"]
-                + " ms, fully loaded: " + results["summary"]["timings"]["fully-loaded"]);
+                + " ms, fully loaded: " + results["summary"]["timings"]["fully-loaded"] + " ms");
         console.log(prefix + helper.subheader("Errors") + "\t\t" + "4xx: " + results["4xx-errors"].length
                 + ", 5xx: " + results["5xx-errors"].length
                 + ", JS: " + results["js-errors"].length);

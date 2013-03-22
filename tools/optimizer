@@ -198,7 +198,7 @@ echo "[*] RESULTS (with no compression):"
 echo
 
 OUTPUT="RESOURCE COUNT AS-IS OPTIMIZED DIFF(KB) DIFF(%)\n"
-OUTPUT=$OUTPUT"-------- ----- --------- ------- -------\n"
+OUTPUT=$OUTPUT"-------- ----- ----- --------- ------- -------\n"
 if $GIF; then OUTPUT=$OUTPUT"GIF ${GIFCOUNT} ${GIFPRE}KB ${GIFPOST}KB ${GIFDIFF}KB ${GIFPER}%\n"; fi
 if $JPG; then OUTPUT=$OUTPUT"JPG ${JPGCOUNT} ${JPGPRE}KB ${JPGPOST}KB ${JPGDIFF}KB ${JPGPER}%\n"; fi
 if $PNG; then OUTPUT=$OUTPUT"PNG ${PNGCOUNT} ${PNGPRE}KB ${PNGPOST}KB ${PNGDIFF}KB ${PNGPER}%\n"; fi

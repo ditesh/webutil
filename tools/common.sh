@@ -26,7 +26,7 @@
 TMPDIR="/tmp/webutil"
 
 function size {
-    echo $(ls -l $1| awk '{print $5}');
+    echo $(ls -l "$1" | awk '{print $5}');
 }
 
 function download {
@@ -42,7 +42,9 @@ function post_processing {
     cp $TMPDIR/$1/post-processed/* $TMPDIR/$1/post-processed-gzip
     gzip -f $TMPDIR/$1/post-processed-gzip/*
 
-    for i in `ls $TMPDIR/$1/post-processed`; do
+    OLDIFS=$IFS
+    IFS=$'\n'
+    for i in `ls "$TMPDIR/$1/post-processed"`; do
 
         if [ -f "$TMPDIR/$1/pre-processed/$i" ]; then
             

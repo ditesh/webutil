@@ -28,7 +28,10 @@ command -v wget >/dev/null 2>&1 || { echo >&2 "I require wget but it's not insta
 command -v phantomjs >/dev/null 2>&1 || { echo >&2 "I require phantomjs but it's not installed.  Aborting."; }
 
 # Let's set up the support functions first
-source ./common.sh
+# Let's set up the support functions first
+CURPATH=`dirname ${0}`
+BASEPATH=`readlink -f ${CURPATH}`
+source "$BASEPATH/common.sh"
 
 # Set up folders
 rm -rf $TMPDIR
@@ -42,14 +45,15 @@ done
 echo "Web Downloader Tool 1.0.1 (c) 2013 Ditesh Gathani <ditesh@gathani.org>"
 echo
 echo -n "Running webutil ... "
-OUTPUT=`phantomjs ../webutil.js -d -u -s $@`
-echo "done."
+OUTPUT=`phantomjs $BASEPATH/../webutil.js -d -u -s $@`
 
 if [ "$?" -ne "0" ] ; then
-    echo "unable to connect";
+    echo "unable to connect.";
     echo
     exit 1
 fi
+
+echo "done."
 
 if $(echo $@ | grep -q "\-ua ipad"); then
     USERAGENT="Mozilla/5.0(iPad; U; CPU iPhone OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B314 Safari/531.21.10";
@@ -71,8 +75,8 @@ for i in $OUTPUT; do
 
     for j in "${types[@]}"; do
 
-        if $( echo $i | awk '{print $2}' | grep --quiet "$j" ); then
-            echo $i | awk '{print $4}' >> "$TMPDIR/${j}-files"
+        if $( echo $i | awk '{print $1}' | grep --quiet "$j" ); then
+            echo $i | awk '{print $3}' >> "$TMPDIR/${j}-files"
         fi
 
     done

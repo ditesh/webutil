@@ -89,7 +89,7 @@ exports.analyze = function(serializedAssets, assets) {
 
             if (type.match(/gif/) !== null) type = "gif";
             if (type.match(/png/) !== null) type = "png";
-            else if (type.match(/jpeg/) !== null) type = "jpg";
+            else if (type.match(/jpeg/) !== null) type = "jpeg";
             else if (type.match(/css/) !== null) type = "css";
             else if (type.match(/javascript/) !== null) type = "js";
             else continue;

@@ -12,7 +12,7 @@ webutil provides automatic website analysis for the savvy web developer. It help
     * spriting
     * cache header analysis
     * blocking analysis
-    * optimization benefit analysis (cost and time)
+    * optimization benefit analysis (monetary cost and time)
 * header verification and analysis
 * built in user agent support with screen dimensions
 * standard `phantomjs` facilities
@@ -187,3 +187,5 @@ A few things to note here:
 1. PhantomJS
 2. Sniffer
 3. Steve Souder's Spriter
+4. Redbot
+5. WebPageTest
