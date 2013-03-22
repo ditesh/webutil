@@ -10,9 +10,9 @@
 - [x] Added list of files modified by optimizer
 - [x] Add auto screen size based on user agent
 - [x] Add license to all files
+- [x] Remove injected query from list of detected libs
+- [x] Check for duplicate detections
 - [ ] Add screen size command line option
-- [ ] Remove injected query from list of detected libs
-- [ ] Check for duplicate detections
 - [ ] Add checking if png files are better as jpegs and vice versa
 - [ ] caching information
 - [ ] Cookie support

@@ -458,6 +458,14 @@ exports.data = {
         type: "cms"
     },
 
+    // @ref http://code.google.com/p/jqlite/
+    // @example https://mobile.airasia.com/en/
+    "jqlite": {
+        name: "jQuery Lite",
+        url: "http://code.google.com/p/jqlite/",
+        type: "js-library"
+    },
+
     // @ref http://jquery.com
     // @example http://jquery.com
     "jquery": {

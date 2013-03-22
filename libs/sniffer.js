@@ -37,7 +37,7 @@ exports.sniff = function() {
             "bootstrap": '.navbar-pills, .hero-unit, .carousel-control, [class^="icon-"]:last-child'
         };
 
-        for (var i in tests) if (jQuery(tests[i]).length > 0) retval[i] = "";
+        for (var i in tests) if (jqWebUtil(tests[i]).length > 0) retval[i] = "";
         return retval;
 
     }
@@ -98,9 +98,9 @@ exports.sniff = function() {
 
                 if (j.toLowerCase() in retval) continue;
 
-                jQuery("meta").each(function(id, elem) {
+                jqWebUtil("meta").each(function(id, elem) {
                 
-                    elem = jQuery(elem);
+                    elem = jqWebUtil(elem);
                     var content = elem.attr("name");
                     if (typeof content !== "undefined") {
 
@@ -133,7 +133,7 @@ exports.sniff = function() {
         function cb(idx, elem) {
 
             var src = "";
-            elem = jQuery(elem);
+            elem = jqWebUtil(elem);
 
             if (elem.is("img")) src = elem.attr("src");
             else src = elem.attr("href");
@@ -152,8 +152,8 @@ exports.sniff = function() {
             }
         }
 
-        jQuery("img").each(cb);
-        jQuery("a, link").each(cb);
+        jqWebUtil("img").each(cb);
+        jqWebUtil("a, link").each(cb);
 
         return retval;
 
@@ -197,9 +197,9 @@ exports.sniff = function() {
             'alfresco': /(alfresco)+(-min)?(\/scripts\/menu)?\.js/
         };
 
-        jQuery("script").each(function(idx, elem) {
+        jqWebUtil("script").each(function(idx, elem) {
 
-            var src = jQuery(elem).attr("src");
+            var src = jqWebUtil(elem).attr("src");
             if (typeof src !== "undefined") {
 
                 src = src.toLowerCase();
@@ -245,7 +245,7 @@ exports.sniff = function() {
             "shibboleth": /<form action="\/idp\/Authn\/UserPassword" method="post">/
         };
 
-        var content = jQuery("html").html();
+        var content = jqWebUtil("html").html();
 
         for (var i in tests) {
 
@@ -285,6 +285,7 @@ exports.sniff = function() {
             "Handlebars": function() { return window.Handlebars.VERSION },
             "Highcharts": function() { return window.Highcharts.version },
             "io": function() { return window.io.version },
+            "jqlite": function() { return window.jQuery.fn.jquery.substr(7); },
             "jQuery": function() { return window.jQuery.fn.jquery },
             "jQuery.ui": function() { return window.jQuery.ui.version },
             "ko": function() { return window.ko.version },
@@ -318,7 +319,7 @@ exports.sniff = function() {
         var objs = ["_gaq", "angular", "Backbone", "brightcove", "can", "d3", "dojo", "Drupal", "Ember", "Ext", "FB",
             "google.maps", "Handlebars", "Highcharts", "ko", "io", "Meteor", "MochiKit", "Modernizr", "MooTools", "PDFJS",
             "Prototype", "jQuery.ui", "Scriptaculous", "sIFR", "Spine", "SproutCore", "swfobject", "twttr", "Typekit"],
-            funs = ["_", "Batman", "Cufon", "google.load", "jQuery", "Processing", "Raphael", "requirejs", "s.t", "webfonts",
+            funs = ["_", "Batman", "Cufon", "google.load", "Processing", "Raphael", "requirejs", "s.t", "webfonts",
             "YUI", "Zepto"],
             jqPlugins = ["facebox", "fancybox", "flowplayer", "nivoSlider", "scrollTo", "superfish", "turn"];
 
@@ -350,9 +351,17 @@ exports.sniff = function() {
 
         }
 
-        if (typeof window["jQuery"] === "function") for (var i in jqPlugins)
-                if (typeof window["jQuery"]["fn"][jqPlugins[i]] === "function")
-                    retval[jqPlugins[i].toLowerCase()] = v[jqPlugins[i]]();
+        if (typeof window["jQuery"] === "function") {
+
+                // Hack to detect jQuery Lite
+                if (window.jQuery.fn.jquery.substr(0, 6) === "jqlite") retval["jqlite"] = v["jqlite"]();
+                else retval["jQuery"] = v["jQuery"]();
+
+                for (var i in jqPlugins)
+                    if (typeof window["jQuery"]["fn"][jqPlugins[i]] === "function")
+                        retval[jqPlugins[i].toLowerCase()] = v[jqPlugins[i]]();
+
+        }
 
         return retval;
 

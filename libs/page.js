@@ -56,9 +56,9 @@ var summary = {
         "on-dom-content-loaded": 0,
         "first-byte-time": 0
     },
-    fs = require('fs'), startTime = -1,
     title="", count = 0, debug = flags["debug"],
     errors = {"4xx": [], "5xx": [], "js": []},
+    fs = require('fs'), startTime = -1, loadFinished = false,
     tempAssets = {}, assets = {}, serializedAssets = [], snifferOutput = [];
 
 var firstbyte = false;
@@ -143,6 +143,9 @@ exports.onConsoleMessage = function(msg) {
 exports.onLoadFinished = function(status) {
 
     if (debug) helper.log("onLoadFinished");
+    if (loadFinished) return;
+
+    loadFinished = true;
     summary["load-time"] = Date.now() - startTime;
 
     if (flags["sniff"] === true) {
@@ -153,7 +156,6 @@ exports.onLoadFinished = function(status) {
         for (var i in sniffed) {
 
             var datum = {}, res = data[i];
-
             datum["version"] = sniffed[i];
 
             if (res === undefined) { datum["name"] = i; helper.log(i); }

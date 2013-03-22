@@ -1,11 +1,11 @@
 # webutil
 
-webutil provides automatic website analysis for the savvy web developer:
+webutil provides automatic website analysis for the savvy web developer. It helps you build faster websites and pinpoint bottlenecks. It provides:
 
 * quick glance summary of key metrics
 * HTTP and JavaScript error reporting
 * caching analysis with an empty and primed cache
-* detection of over 120 commonly used front end libraries, content management systems and third party embeds (ala What's That Site Running?)
+* detection of 2^7 commonly used front end libraries, content management systems and third party embeds (ala What's That Site Running?)
 * automatic asset (HTML, JavaScript, CSS, images) optimization facility:
     * minification
     * compression
@@ -182,3 +182,8 @@ A few things to note here:
 * Downloaded resources are available in `/tmp/webutil/js/pre` (replace js with css/png/jpg)
 * Optimized resources are available in `/tmp/webutil/js/post` (replace js with css/png/jpg)
 
+### Credits
+
+1. PhantomJS
+2. Sniffer
+3. Steve Souder's Spriter

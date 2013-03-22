@@ -39,9 +39,10 @@ exports.results = function(results) {
     var prefix = flags["prefix"];
     var silent = flags["silent"];
 
+    print.header();
+
     if (silent !== true) {
 
-        print.header();
         console.log("");
         console.log(helper.header("Summary"));
         console.log(prefix + helper.subheader("Requests") + "\t" +  + results["urls"].length + " request(s), "
