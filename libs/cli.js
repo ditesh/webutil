@@ -35,7 +35,6 @@ exports.parse = function() {
         testflag = 0,
         flags = {
         "cpa": false,
-        "cpai": false,
         "debug": false,
         "sniff": false,
         "prefix": "",
@@ -43,6 +42,7 @@ exports.parse = function() {
         "silent": false,
         "timeout": 30,
         "har-path": "",
+        "asset-path": "",
         "fully-loaded": 2,
         "cache-retries": 0,
         "print-urls": false,
@@ -97,6 +97,12 @@ exports.parse = function() {
                 webpage.settings.userAgent = arg;
                 webpage.viewportSize = { width: width, height: height };
 
+            } else if (arg === "-a") {
+
+                skip = true;
+                arg = parseArg(i);
+                flags["asset-path"] = arg;
+
             } else if (arg === "-z") {
 
                 skip = true;
@@ -131,11 +137,8 @@ exports.parse = function() {
 
             } else if (arg === "-cpa") {
 
-                flags["cpa"] = true;
-
-            } else if (arg === "-cpai") {
-
-                flags["cpai"] = true;
+                // Commenting out CPA functionality until it is proven to work
+                // flags["cpa"] = true;
 
             } else if (arg === "-har") {
 
@@ -197,7 +200,7 @@ exports.parse = function() {
             else if (arg === "-r") flags["print-redirects"] = true;
             else if (arg === "-d") flags["same-domain"] = true;
             else if (arg === "-debug") flags["debug"] = true;
-            else if (arg === "-sniff") flags["sniff"] = true;
+            else if (arg === "-sniffer") flags["sniff"] = true;
             else if (arg.charAt(0) !== "-" && i > 0) url = arg.trim();
 
         });

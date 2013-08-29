@@ -215,12 +215,6 @@ var callback = function(status) {
 
     if (status === "success") {
 
-        if (flags["cpai"]) {
-
-            cpa.analyze(serializedAssets, assets);
-
-        }
-
         var types = {}, urls = [], url = cli["url-parts"], redirects = [], breakdown = {};
 
         // Get fully loaded timing
@@ -401,6 +395,13 @@ var callback = function(status) {
 
             var retval= webpage.render(flags["screenshot-path"]);
             if  (retval === false) print.error("Unable to save screenshot to " + flags["screenshot-path"]);
+
+        }
+
+        if (flags["asset-path"].length > 0) {
+
+            fs.write(flags["asset-path"]+"/serialized-assets.json", JSON.stringify(serializedAssets), "w");
+            fs.write(flags["asset-path"]+"/assets.json", JSON.stringify(assets), "w");
 
         }
 

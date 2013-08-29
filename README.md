@@ -10,9 +10,9 @@ webutil provides automatic website analysis for the savvy web developer. It help
     * minification
     * compression
     * spriting
-    * cache header analysis
     * blocking analysis
-    * optimization benefit analysis (monetary cost and time)
+    * cache header analysis
+    * asset optimization benefit analysis (monetary cost)
 * header verification and analysis
 * built in user agent support with screen dimensions
 * standard `phantomjs` facilities

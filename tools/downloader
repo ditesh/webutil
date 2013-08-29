@@ -42,10 +42,10 @@ for i in "${types[@]}"; do
     "$TMPDIR/$i/post-processed" "$TMPDIR/$i/post-processed-gzip" 
 done
 
-echo "Web Downloader Tool 1.0.1 (c) 2013 Ditesh Gathani <ditesh@gathani.org>"
+echo -e "\e[1;36mWeb Downloader Tool 1.0.1 (c) 2013 Ditesh Gathani <ditesh@gathani.org>\e[0m"
 echo
 echo -n "Running webutil ... "
-OUTPUT=`phantomjs $BASEPATH/../webutil.js -d -u -s $@`
+OUTPUT=`phantomjs $BASEPATH/../webutil.js -d -u -s -a $TMPDIR $@`
 
 if [ "$?" -ne "0" ] ; then
     echo "unable to connect.";

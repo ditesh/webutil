@@ -236,7 +236,7 @@ exports.help = function() {
     console.log("\t-sd: sort by size descending (only applicable for -b or -u)");
     console.log("\t-ua: specify user agent");
     console.log("\t-har: specify HAR filename");
-    console.log("\t-debug: enable debugging (default false)");
+    console.log("\t-debug: enable debugging");
     console.log("\t-sniffer: print all libraries and CMS's detected");
     console.log("\t-timeout: specify timeout in seconds (default 30 seconds)");
     console.log("\t-username: specify username for HTTP authentication");

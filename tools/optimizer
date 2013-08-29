@@ -35,6 +35,15 @@ BASEPATH=`readlink -f ${CURPATH}`
 source "$BASEPATH/common.sh"
 
 # Basic setup
+types=( png jpeg gif css javascript )
+
+for i in "${types[@]}"; do
+    rm -rf "$TMPDIR/$i/post-processed"
+    rm -rf "$TMPDIR/$i/post-processed-gzip"
+    mkdir -p "$TMPDIR/$i/post-processed" "$TMPDIR/$i/post-processed-gzip" 
+done
+
+
 rm -f $TMPDIR/modified-files
 
 JS=false
@@ -43,7 +52,7 @@ JPG=false
 PNG=false
 CSS=false
 
-echo "Web Optimization Tool 1.0.1 (c) 2013 Ditesh Gathani <ditesh@gathani.org>"
+echo -e "\e[1;36mWeb Optimization Tool 1.0.1 (c) 2013 Ditesh Gathani <ditesh@gathani.org>\e[0m"
 echo
 
 echo -n "Checking for PNG files ... "
@@ -171,7 +180,12 @@ if [ -f "$TMPDIR/javascript-files" ]; then
     for i in `ls $TMPDIR/javascript/pre-processed/*`; do
 
         i=`echo $i | xargs -0 -n1 basename`
-        uglifyjs "$TMPDIR/javascript/pre-processed/$i" -o "$TMPDIR/javascript/post-processed/$i" -c 2> /dev/null
+        uglifyjs "$TMPDIR/javascript/pre-processed/$i" -o "$TMPDIR/javascript/post-processed/$i" -c > /dev/null 2>&1
+
+        # Hack for uglify compression dropping the entire file
+        if [ $(size "$TMPDIR/javascript/post-processed/$i") -eq 0 ]; then
+            uglifyjs "$TMPDIR/javascript/pre-processed/$i" -o "$TMPDIR/javascript/post-processed/$i" > /dev/null  2>&1
+        fi
 
     done
     echo "done."
@@ -193,12 +207,21 @@ if [ -f "$TMPDIR/javascript-files" ]; then
 else echo "not found."
 fi
 
-echo
-echo "[*] RESULTS (with no compression):"
-echo
+# Lets figure out what's the difference in time
+#echo -n "Running critical path analysis ... "
+#OUTPUT=`phantomjs $BASEPATH/../webutil.js -a $TMPDIR -cpa $@`
+#echo "done"
+#echo $OUTPUT;
+#ASIS=`echo $OUTPUT | cut -d ' ' -f 1`
+#OPTIMIZED_ASIS=`echo $OUTPUT | cut -d ' ' -f 4`
+#OPTIMIZED_DECOMPRESSED=`echo $OUTPUT | cut -d ' ' -f 5`
+#OPTIMIZED_COMPRESSED=`echo $OUTPUT | cut -d ' ' -f 6`
 
-OUTPUT="RESOURCE COUNT AS-IS OPTIMIZED DIFF(KB) DIFF(%)\n"
-OUTPUT=$OUTPUT"-------- ----- ----- --------- ------- -------\n"
+echo
+echo -e "\e[1;34mRESULTS (with no compression)\e[0m"
+echo
+OUTPUT="ASSET COUNT AS-IS OPTIMIZED DIFF(KB) DIFF(%)\n"
+OUTPUT=$OUTPUT"----- ----- ----- --------- -------- -------\n"
 if $GIF; then OUTPUT=$OUTPUT"GIF ${GIFCOUNT} ${GIFPRE}KB ${GIFPOST}KB ${GIFDIFF}KB ${GIFPER}%\n"; fi
 if $JPG; then OUTPUT=$OUTPUT"JPG ${JPGCOUNT} ${JPGPRE}KB ${JPGPOST}KB ${JPGDIFF}KB ${JPGPER}%\n"; fi
 if $PNG; then OUTPUT=$OUTPUT"PNG ${PNGCOUNT} ${PNGPRE}KB ${PNGPOST}KB ${PNGDIFF}KB ${PNGPER}%\n"; fi
@@ -220,14 +243,15 @@ OUTPUT=$OUTPUT"TOTAL ${TOTALCOUNT} ${TOTALPRE}KB ${TOTALPOST}KB ${TOTALDIFF}KB $
 
 echo -e $OUTPUT | column -t
 echo
-echo "AWS bandwidth savings: USD$ ${COST} per million visits"
+echo -e "\e[1;30mAWS bandwidth savings:\e[0m USD$ ${COST} per million visits"
+#echo -e "\e[1;30mTime taken:\e[0m $OPTIMIZED_DECOMPRESSED ms"
 
 echo
-echo "[*] RESULTS (with gzip compression)"
+echo -e "\e[1;34mRESULTS (with gzip compression)\e[0m"
 echo
 
 OUTPUT="RESOURCE COUNT AS-IS OPTIMIZED DIFF(KB) DIFF(%)\n"
-OUTPUT=$OUTPUT"-------- ----- ----- --------- ------- -------\n"
+OUTPUT=$OUTPUT"----- ----- ----- --------- -------- -------\n"
 if $GIF; then OUTPUT=$OUTPUT"GIF ${GIFCOUNT} ${GIFPRE_COMPRESSED}KB ${GIFPOST_COMPRESSED}KB ${GIFDIFF_COMPRESSED}KB ${GIFPER_COMPRESSED}%\n"; fi
 if $JPG; then OUTPUT=$OUTPUT"JPG ${JPGCOUNT} ${JPGPRE_COMPRESSED}KB ${JPGPOST_COMPRESSED}KB ${JPGDIFF_COMPRESSED}KB ${JPGPER_COMPRESSED}%\n"; fi
 if $PNG; then OUTPUT=$OUTPUT"PNG ${PNGCOUNT} ${PNGPRE_COMPRESSED}KB ${PNGPOST_COMPRESSED}KB ${PNGDIFF_COMPRESSED}KB ${PNGPER_COMPRESSED}%\n"; fi
@@ -250,13 +274,13 @@ OUTPUT=$OUTPUT"TOTAL ${TOTALCOUNT} ${TOTALPRE_COMPRESSED}KB ${TOTALPOST_COMPRESS
 
 echo -e $OUTPUT | column -t
 echo
-echo "AWS bandwidth savings: USD$ ${COST_COMPRESSED} per million visits"
+echo -e "\e[1;30mAWS bandwidth savings:\e[0m USD$ ${COST_COMPRESSED} per million visits"
+#echo -e "\e[1;30mTime taken:\e[0m $OPTIMIZED_COMPRESSED ms"
 
-echo
-echo "[*] Modified Assets"
-echo
-cat "$TMPDIR/modified-files"
-
+# echo
+# echo "Modified Assets"
+# echo
+# cat "$TMPDIR/modified-files"
 
 echo
 exit 0

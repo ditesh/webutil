@@ -31,7 +31,17 @@ var helper = require("./libs/helper"), webpage = require("webpage").create(),
     print = require("./libs/print"), cli = require("./libs/cli").parse(), flags = cli["flags"],
     page = require("./libs/page"), sniffer = require("./libs/sniffer"), data = require("./libs/data").data,
     headers = new (require("./libs/headers").Headers),
-    cpa = require("./libs/cpa");
+    cpa = require("./libs/cpa"), fs = require("fs");
+
+// If analysis is turned on, we can skip actually running the script
+if (flags["cpa"] === true) {
+
+    var assets = JSON.parse(fs.read(flags["asset-path"] + "/assets.json"));
+    var serializedAssets = JSON.parse(fs.read(flags["asset-path"] + "/serialized-assets.json"));
+    cpa.analyze(serializedAssets, assets);
+    phantom.exit();
+
+}
 
 // Set a timeout to avoid long lived pages
 // (eg those that don't fire the onLoad event or
