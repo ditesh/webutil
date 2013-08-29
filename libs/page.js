@@ -146,9 +146,7 @@ exports.onConsoleMessage = function(msg) {
 exports.onLoadFinished = function(status) {
 
     if (debug) helper.log(helper.title(new Date()) + " " + helper.subheader("onLoadFinished"));
-    if (loadFinished) return;
 
-    loadFinished = true;
     summary["timings"]["on-load"] = Date.now() - startTime;
 
     if (flags["sniff"] === true) {
