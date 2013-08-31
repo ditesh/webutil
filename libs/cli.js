@@ -45,7 +45,10 @@ exports.parse = function() {
         "asset-path": "",
         "fully-loaded": 2,
         "cache-retries": 0,
-        "print-urls": false,
+        "list-urls": false,
+        "list-charsets": false,
+        "list-secure": false,
+        "list-compressed": false,
         "same-domain": false,
         "screenshot-path": "",
         "equivalent-domains": [],
@@ -195,7 +198,10 @@ exports.parse = function() {
             else if (arg === "-sc") flags["sort-by"] |= 8;
             else if (arg === "-he") flags["print-http-errors"] = true;
             else if (arg === "-je") flags["print-javascript-errors"] = true;
-            else if (arg === "-u") flags["print-urls"] = true;
+            else if (arg === "-lc") flags["list-compressed"] = true;
+            else if (arg === "-le") flags["list-charsets"] = true;
+            else if (arg === "-ls") flags["list-secure"] = true;
+            else if (arg === "-lu") flags["list-urls"] = true;
             else if (arg === "-b") flags["print-breakdown"] = true;
             else if (arg === "-r") flags["print-redirects"] = true;
             else if (arg === "-d") flags["same-domain"] = true;

@@ -87,7 +87,100 @@ exports.results = function(results) {
         }
     }
 
-    if (flags["print-urls"] === true) {
+    if (flags["list-compressed"] === true) {
+
+        if (silent !== true) {
+
+            console.log("");
+            console.log(helper.header("URI's (Compressed)"));
+
+        }
+
+        // Two individual for loops may not be the best approach,
+        // but for small n's, its good enough
+        results["urls"].forEach(function(arg, i) {
+            if (arg["compressed"] === true) console.log(prefix + "\t" + arg["url"]);
+        });
+
+        console.log("");
+
+        if (silent !== true) console.log(helper.header("URI's (Not Compressed)"));
+
+        // Two individual for loops may not be the best approach,
+        // but for small n's, its good enough
+        results["urls"].forEach(function(arg, i) {
+            if (arg["compressed"] === false) console.log(prefix + "\t" + arg["url"]);
+        });
+
+    }
+
+    if (flags["list-charsets"] === true) {
+
+        var charsets = {};
+        console.log("");
+
+        results["urls"].forEach(function(arg, i) {
+
+            if (arg["charset"] === "") arg["charset"] = "not specified";
+
+            if ((arg["charset"] in charsets) === false) charsets[arg["charset"]] = [];
+            charsets[arg["charset"]].push(arg["url"]);
+
+        });
+
+        for (var charset in charsets) {
+
+            console.log(helper.header("Charset ("+charset+")"));
+            charsets[charset].forEach(function(url) {
+                console.log(prefix + "\t" + url);
+            });
+            console.log("");
+
+        }
+    }
+
+    if (flags["list-secure"] === true) {
+
+        if (silent !== true) {
+
+            console.log("");
+            console.log(helper.header("URI's (Encrypted)"));
+
+        }
+
+        // Two individual for loops may not be the best approach,
+        // but for small n's, its good enough
+        var noneflag = true;
+        results["urls"].forEach(function(arg, i) {
+            if (arg["secure"] === true) {
+                
+                noneflag = false;
+                console.log(prefix + "\t" + arg["url"]);
+
+            }
+        });
+
+        if (noneflag === true) console.log(prefix + "None");
+
+        console.log("");
+
+        if (silent !== true) console.log(helper.header("URI's (Not Encrypted)"));
+
+        noneflag = true;
+        results["urls"].forEach(function(arg, i) {
+            if (arg["secure"] === false) {
+                
+                noneflag = false;
+                console.log(prefix + "\t" + arg["url"]);
+
+            }
+        });
+
+        if (noneflag === true) console.log(prefix + "None");
+
+    }
+
+    if (flags["list-urls"] === true) {
 
         if (silent !== true) {
 
@@ -225,7 +318,10 @@ exports.help = function() {
     console.log("\t-d: print data for resources within the same domain only (exception is load time)");
     console.log("\t-r: print all redirects");
     console.log("\t-s: print only relevant data (with no summary), works with either -b OR -u specified (and not both)");
-    console.log("\t-u: print all retrieved URL's");
+    console.log("\t-lc: list all retrieved URL's by compression status");
+    console.log("\t-le: list all retrieved URL's by charsets");
+    console.log("\t-ls: list all retrieved URL's by encrypted state");
+    console.log("\t-lu: list all retrieved URL's");
     console.log("\t-z: specify screenshot path");
     console.log("\t-dd: specify keywords for 'same domain' matches");
     console.log("\t-fl: specify fully loaded state interval check (defaults to 2 second checks)");

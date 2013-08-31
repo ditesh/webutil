@@ -315,22 +315,14 @@ var callback = function(status) {
                 if (type === null) type = "";
                 type = type.toLowerCase();
 
+                var charset = "";
                 var offset = type.indexOf(";")
-
-                urls.push({
-                    
-                    "id": asset["request"]["id"],
-                    "url": assetURL,
-                    "content-type": (offset > 0) ? type.substr(0, offset) : type,
-                    "size": (asset["start-response"]["bodySize"] !== null) ? asset["start-response"]["bodySize"] : 0,
-
-                });
 
                 summary["total-size"] += asset["start-response"]["bodySize"];
 
                 if (offset > 0) {
 
-                    var charset = type.split("charset=")
+                    charset = type.split("charset=")
 
                     if (charset.length != 2) charset = "others";
                     else {
@@ -364,6 +356,7 @@ var callback = function(status) {
                 breakdown[type]["count"] += 1;
                 breakdown[type]["size"] += asset["start-response"]["bodySize"];
 
+                var secure = false;
                 var compressed = false;
 
                 for (var i in headers) if (headers[i]["name"] === "Content-Encoding") compressed = true;
@@ -371,9 +364,22 @@ var callback = function(status) {
                 if (compressed === true) summary["counts"]["compression"]["not-compressed"] += 1;
                 else summary["counts"]["compression"]["compressed"] += 1;
 
-                if (assetURL.length >= 5 && assetURL.substr(0, 5) === "https") summary["counts"]["encryption"]["encrypted"] += 1;
+                if (assetURL.length >= 5 && assetURL.substr(0, 5) === "https") secure = true;
+                
+                if (secure === true) summary["counts"]["encryption"]["encrypted"] += 1;
                 else summary["counts"]["encryption"]["not-encrypted"] += 1;
 
+                urls.push({
+                    
+                    "id": asset["request"]["id"],
+                    "url": assetURL,
+                    "content-type": (offset > 0) ? type.substr(0, offset) : type,
+                    "size": (asset["start-response"]["bodySize"] !== null) ? asset["start-response"]["bodySize"] : 0,
+                    "compressed": compressed,
+                    "charset": charset,
+                    "secure": secure,
+
+                });
             }
         }
 
