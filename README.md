@@ -9,10 +9,7 @@ webutil provides automatic website analysis for the savvy web developer. It help
 * automatic asset (HTML, JavaScript, CSS, images) optimization facility:
     * minification
     * compression
-    * spriting
-    * blocking analysis
-    * cache header analysis
-    * asset optimization benefit analysis (monetary cost)
+    * asset optimization benefit analysis
 * header verification and analysis
 * built in user agent support with screen dimensions
 * standard `phantomjs` facilities
@@ -33,14 +30,14 @@ Lots. Let's get relevant stats for Reddit:
 
     $ chmod a+x wush  # make the shell script executable
     $ ./wush reddit.com
-    webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
+    webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
         Requests    33 request(s), 385103 bytes (376 KB), 0 redirect(s)
         Resources   HTML: 2, CSS: 1, JS: 4, images: 26, others: 0
-                    UTF-8: 4, ISO-8859-1: 0, others: 29
+                    UTF-8: 4, ISO-8859-1: 0, others: 0, not-specified: 29
                     compressed: 27, not-compressed: 6
-        Timing      onDomContentLoaded: 3.1s, onLoad: 3.91s
+        Timing      first byte: 291 ms, onDOMContentLoaded: 667 ms, onLoad: 2386 ms, fully loaded: 4390 ms
         Errors      4xx: 0, 5xx: 0, JS: 0
 
 As you can see, it provides a nicely formatted summary about the site highlighting key areas.
@@ -50,7 +47,7 @@ As you can see, it provides a nicely formatted summary about the site highlighti
 Now, lets get a complete list of URL's accessed by the browser when loading up the site:
 
     $ ./wush -u reddit.com
-    webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
+    webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
         ... snipped for brevity ...
@@ -66,7 +63,7 @@ Now, lets get a complete list of URL's accessed by the browser when loading up t
 Mimetype, resource size and resource URL is provided. Occasionally, we are only interested in resources from the same domain. This can be achieved by using the `-d` parameter:
 
     $ ./wush -u -d reddit.com
-    webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
+    webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
         ... snipped for brevity ...
@@ -76,7 +73,7 @@ Mimetype, resource size and resource URL is provided. Occasionally, we are only 
 Whoops, there are no URL's. As it turns out, reddit.com doesn't have any resources from the same domain. We need to rerun the command using the -dd to specify the other domains reddit.com uses.
 
     $ ./wush -u -dd reddit,media reddit.com
-    webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
+    webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
         ... snipped for brevity ...
@@ -94,30 +91,30 @@ The important thing to note about `-d` and `-dd` is that the numbers in the summ
 
 ### Primed Cache
 
-There is an inbuilt facility to provide the summary but with a primed cached. This is a good way to check whether the browser is, in fact, caching the site on subsequent visits.
+There is an inbuilt facility to provide the summary but with a primed cache. This is a good way to check whether the browser is, in fact, caching the site on subsequent visits.
 
     # One execution
     $ ./wush reddit.com
-    webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
+    webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
         Requests    33 request(s), 385103 bytes (376 KB), 0 redirect(s)
         Resources   HTML: 2, CSS: 1, JS: 4, images: 26, others: 0
-                    UTF-8: 4, ISO-8859-1: 0, others: 29
+                    UTF-8: 4, ISO-8859-1: 0, others: 0, not-specified: 29
                     compressed: 27, not-compressed: 6
-        Timing      onDomContentLoaded: 3.1s, onLoad: 3.91s
+        Timing      first byte: 291 ms, onDOMContentLoaded: 667 ms, onLoad: 2386 ms, fully loaded: 4390 ms
         Errors      4xx: 0, 5xx: 0, JS: 0
 
     # Two executions
     $ ./wush -c 1 reddit.com
-    webutil.js 1.0 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
+    webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     [Summary]
         Requests    14 request(s), 135463 bytes (132 KB), 0 redirect(s)
         Resources   HTML: 2, CSS: 0, JS: 1, images: 11, others: 0
-                    UTF-8: 3, ISO-8859-1: 0, others: 11
+                    UTF-8: 3, ISO-8859-1: 0, others: 0, not-specified: 11
                     compressed: 12, not-compressed: 2
-        Timing      onDomContentLoaded: 1.68s, onLoad: 4.65s
+        Timing      first byte: 291 ms, onDOMContentLoaded: 667 ms, onLoad: 2386 ms, fully loaded: 4390 ms
         Errors      4xx: 0, 5xx: 0, JS: 0
 
 When the `-c` parameter is passed, the page is reloaded the specified number of times. In the example above, the page is loaded once, and then reloaded one more time (reflecting the effect of passing `-c 1`).
@@ -128,10 +125,10 @@ You can see the benefits of caching as the number of requests, page size etc dro
 
 There is a bundled shell script that can automatically take the URL's and attempt to compress/minify CSS, JS or image assets.
 
-    $ chmod a+x optimize.sh
-    $ ./optimize.sh http://www.themalaysianinsider.com
+    $ chmod a+x tools/downloader tools/optimizer
+    $ tools/optimizer http://www.themalaysianinsider.com
 
-    Web Optimization Tool 1.0 (c) 2013 Ditesh Gathani <ditesh@gathani.org>
+    Web Optimization Tool 1.0.1 (c) 2013 Ditesh Gathani <ditesh@gathani.org>
     Running webutil ... done.
     Checking for PNG files ... found
     Downloading PNG files ... done.

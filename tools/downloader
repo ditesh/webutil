@@ -24,7 +24,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-command -v wget >/dev/null 2>&1 || { echo >&2 "I require wget but it's not installed.  Aborting."; }
+command -v curl >/dev/null 2>&1 || { echo >&2 "I require curl but it's not installed.  Aborting."; }
 command -v phantomjs >/dev/null 2>&1 || { echo >&2 "I require phantomjs but it's not installed.  Aborting."; }
 
 # Let's set up the support functions first
@@ -35,7 +35,7 @@ source "$BASEPATH/common.sh"
 
 # Set up folders
 rm -rf $TMPDIR
-types=( png jpeg gif css javascript )
+types=( png jpg gif css js )
 
 for i in "${types[@]}"; do
     mkdir -p "$TMPDIR/$i/pre-processed" "$TMPDIR/$i/pre-processed-gzip" \
@@ -45,7 +45,7 @@ done
 echo -e "\e[1;36mWeb Downloader Tool 1.0.1 (c) 2013 Ditesh Gathani <ditesh@gathani.org>\e[0m"
 echo
 echo -n "Running webutil ... "
-OUTPUT=`phantomjs $BASEPATH/../webutil.js -d -u -s -a $TMPDIR $@`
+OUTPUT=`phantomjs $BASEPATH/../webutil.js -d -lu -s $@`
 
 if [ "$?" -ne "0" ] ; then
     echo "unable to connect.";
@@ -75,7 +75,7 @@ for i in $OUTPUT; do
 
     for j in "${types[@]}"; do
 
-        if $( echo $i | awk '{print $1}' | grep --quiet "$j" ); then
+        if $( echo $i | awk '{print $1}' | grep --quiet -i "$j" ); then
             echo $i | awk '{print $3}' >> "$TMPDIR/${j}-files"
         fi
 
@@ -93,10 +93,10 @@ else echo "not found."
 fi
 
 echo -n "Checking for JPEG files ... "
-if [ -f "$TMPDIR/jpeg-files" ]; then
+if [ -f "$TMPDIR/jpg-files" ]; then
 
     echo -n "found ... downloading ... "
-    download jpeg
+    download jpg
     echo "done."
 
 else echo "not found."
@@ -123,10 +123,10 @@ else echo "not found."
 fi
 
 echo -n "Checking for JS files ... "
-if [ -f "$TMPDIR/javascript-files" ]; then
+if [ -f "$TMPDIR/js-files" ]; then
 
     echo -n "found ... downloading ... "
-    download javascript
+    download js
     echo "done."
 
 else echo "not found."

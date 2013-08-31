@@ -31,7 +31,8 @@ function size {
 
 function download {
 
-    wget -q --user-agent="$USERAGENT" -P "$TMPDIR/$1/pre-processed" --input-file="$TMPDIR/${1}-files"
+    cd "$TMPDIR/$1/pre-processed"
+    cat "$TMPDIR/${1}-files" | xargs -I % curl --compressed -s -A "$USERAGENT" -O %
     cp $TMPDIR/$1/pre-processed/* $TMPDIR/$1/pre-processed-gzip
     gzip -f $TMPDIR/$1/pre-processed-gzip/*
 

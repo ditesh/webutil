@@ -317,7 +317,7 @@ exports.help = function() {
     console.log("\t-c: reload specified number of times (eg -c 2 loads the page 3 times)");
     console.log("\t-d: print data for resources within the same domain only (exception is load time)");
     console.log("\t-r: print all redirects");
-    console.log("\t-s: print only relevant data (with no summary), works with either -b OR -u specified (and not both)");
+    console.log("\t-s: print only relevant data (with no summary), works with either -b OR -lc, -ls, -lu specified");
     console.log("\t-lc: list all retrieved URL's by compression status");
     console.log("\t-le: list all retrieved URL's by charsets");
     console.log("\t-ls: list all retrieved URL's by encrypted state");

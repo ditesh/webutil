@@ -35,7 +35,7 @@ BASEPATH=`readlink -f ${CURPATH}`
 source "$BASEPATH/common.sh"
 
 # Basic setup
-types=( png jpeg gif css javascript )
+types=( png jpg gif css js )
 
 for i in "${types[@]}"; do
     rm -rf "$TMPDIR/$i/post-processed"
@@ -80,28 +80,28 @@ else echo "not found."
 fi
 
 echo -n "Checking for JPEG files ... "
-if [ -f "$TMPDIR/jpeg-files" ]; then
+if [ -f "$TMPDIR/jpg-files" ]; then
 
     echo -n "optimizing ... "
-    for i in `ls $TMPDIR/jpeg/pre-processed/*`; do
+    for i in `ls $TMPDIR/jpg/pre-processed/*`; do
 
         i=`echo $i | xargs -0 -n1 basename`
-        jpegtran -optimize -copy none "$TMPDIR/jpeg/pre-processed/$i" > "$TMPDIR/jpeg/post-processed/$i";
+        jpegtran -optimize -copy none "$TMPDIR/jpg/pre-processed/$i" > "$TMPDIR/jpg/post-processed/$i";
 
     done
     echo "done."
 
-    post_processing jpeg
+    post_processing jpg
 
     JPG=true
-    JPGCOUNT=$(count jpeg);
-    JPGPRE=$(presize jpeg);
-    JPGPOST=$(postsize jpeg);
+    JPGCOUNT=$(count jpg);
+    JPGPRE=$(presize jpg);
+    JPGPOST=$(postsize jpg);
     JPGDIFF=`echo "$JPGPRE-$JPGPOST" | bc | sed -E 's/^(-?)\./\10./'`
     JPGPER=`echo "scale=2;100*$JPGDIFF/$JPGPRE" | bc | sed -E 's/^(-?)\./\10./'`
 
-    JPGPRE_COMPRESSED=$(presize jpeg compressed);
-    JPGPOST_COMPRESSED=$(postsize jpeg compressed);
+    JPGPRE_COMPRESSED=$(presize jpg compressed);
+    JPGPOST_COMPRESSED=$(postsize jpg compressed);
     JPGDIFF_COMPRESSED=`echo "$JPGPRE_COMPRESSED-$JPGPOST_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
     JPGPER_COMPRESSED=`echo "scale=2;100*$JPGDIFF_COMPRESSED/$JPGPRE_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
 
@@ -174,33 +174,33 @@ else echo "not found."
 fi
 
 echo -n "Checking for JS files ... "
-if [ -f "$TMPDIR/javascript-files" ]; then
+if [ -f "$TMPDIR/js-files" ]; then
 
     echo -n "optimizing ..."
-    for i in `ls $TMPDIR/javascript/pre-processed/*`; do
+    for i in `ls $TMPDIR/js/pre-processed/*`; do
 
         i=`echo $i | xargs -0 -n1 basename`
-        uglifyjs "$TMPDIR/javascript/pre-processed/$i" -o "$TMPDIR/javascript/post-processed/$i" -c > /dev/null 2>&1
+        uglifyjs "$TMPDIR/js/pre-processed/$i" -o "$TMPDIR/js/post-processed/$i" -c > /dev/null 2>&1
 
         # Hack for uglify compression dropping the entire file
-        if [ $(size "$TMPDIR/javascript/post-processed/$i") -eq 0 ]; then
-            uglifyjs "$TMPDIR/javascript/pre-processed/$i" -o "$TMPDIR/javascript/post-processed/$i" > /dev/null  2>&1
+        if [ $(size "$TMPDIR/js/post-processed/$i") -eq 0 ]; then
+            uglifyjs "$TMPDIR/js/pre-processed/$i" -o "$TMPDIR/js/post-processed/$i" > /dev/null  2>&1
         fi
 
     done
     echo "done."
 
-    post_processing javascript
+    post_processing js
 
     JS=true
-    JSCOUNT=$(count javascript);
-    JSPRE=$(presize javascript);
-    JSPOST=$(postsize javascript);
+    JSCOUNT=$(count js);
+    JSPRE=$(presize js);
+    JSPOST=$(postsize js);
     JSDIFF=`echo "$JSPRE-$JSPOST" | bc | sed -E 's/^(-?)\./\10./'`
     JSPER=`echo "scale=2;100*$JSDIFF/$JSPRE" | bc | sed -E 's/^(-?)\./\10./'`
 
-    JSPRE_COMPRESSED=$(presize javascript compressed);
-    JSPOST_COMPRESSED=$(postsize javascript compressed);
+    JSPRE_COMPRESSED=$(presize js compressed);
+    JSPOST_COMPRESSED=$(postsize js compressed);
     JSDIFF_COMPRESSED=`echo "$JSPRE_COMPRESSED-$JSPOST_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
     JSPER_COMPRESSED=`echo "scale=2;100*$JSDIFF_COMPRESSED/$JSPRE_COMPRESSED" | bc | sed -E 's/^(-?)\./\10./'`
 
