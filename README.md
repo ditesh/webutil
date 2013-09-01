@@ -50,13 +50,7 @@ Get a page weight breakdown by resources:
     webutil 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     Summary
-    Requests    41 request(s), 587702 bytes (574 KB), 1 redirect(s)
-    Resources   HTML: 3, CSS: 3, JS: 9, images: 26, others: 0
-                UTF-8: 5, ISO-8859-1: 0, others: 0, not-specified: 36
-                compressed: 27, not-compressed: 14
-                encrypted: 0, not-encrypted: 41
-    Timing      first byte: 149 ms, onDOMContentLoaded: 563 ms, onLoad: 1755 ms, fully loaded: 3760 ms
-    Errors      4xx: 0, 5xx: 0, JS: 0
+    ... snipped for brevity ...
 
     Breakdown
     HTML      3 files   107243 bytes (105 KB)
@@ -72,13 +66,7 @@ Lets run it again but only have it consider resources that are within reddit's c
     webutil 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     Summary
-    Requests    33 request(s), 371169 bytes (362 KB), 1 redirect(s)
-    Resources   HTML: 2, CSS: 2, JS: 3, images: 26, others: 0
-                UTF-8: 3, ISO-8859-1: 0, others: 0, not-specified: 30
-                compressed: 27, not-compressed: 6
-                encrypted: 0, not-encrypted: 33
-    Timing      first byte: 281 ms, onDOMContentLoaded: 688 ms, onLoad: 2139 ms, fully loaded: 4142 ms
-    Errors      4xx: 0, 5xx: 0, JS: 0
+    ... snipped for brevity ...
 
     Breakdown
     HTML      2 files   104255 bytes (102 KB)
@@ -201,7 +189,6 @@ Finally, to list resources by charset:
         http://www.reddit.com/api/request_promo
 
     Charset (not specified)
-        http://www.redditstatic.com/subreddit-stylesheet/l5HnWp45tKh_Hs__SZks99bdVJ8.css
         http://www.redditstatic.com/reddit.Ib1IJ_64tM4.css
         http://www.redditstatic.com/reddit-init.en.uiM-SGfQunU.js
         ... snipped for brevity ...
@@ -247,7 +234,7 @@ Timing information is important for web developers. `webutil` offers four parame
 * onLoad: fires when the document loading completes
 * fully loaded: fires when there is no more network activity
 
-The four parameters are clearly visible below:
+The four parameters are clearly visible below under the Timing section:
 
     $ ./wush reddit.com
     webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
@@ -282,13 +269,7 @@ List HTTP errors (4xx, 5xx) and JavaScript errors as follows:
     webutil 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
     Summary
-    Requests    90 request(s), 178290 bytes (174 KB), 0 redirect(s)
-    Resources   HTML: 1, CSS: 6, JS: 15, images: 68, others: 0
-                UTF-8: 1, ISO-8859-1: 0, others: 0, not-specified: 89
-                compressed: 89, not-compressed: 1
-                encrypted: 0, not-encrypted: 90
-    Timing      first byte: 273 ms, onDOMContentLoaded: 764 ms, onLoad: 1701 ms, fully loaded: 3706 ms
-    Errors      4xx: 8, 5xx: 0, JS: 1
+    ... snipped for brevity ...
 
     JavaScript errors
     "SyntaxError: Parse error"
