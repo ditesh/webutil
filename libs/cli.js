@@ -36,6 +36,7 @@ exports.parse = function() {
         flags = {
         "cpa": false,
         "debug": false,
+        "json": null,
         "sniff": false,
         "prefix": "",
         "sort-by": 0,
@@ -192,6 +193,11 @@ exports.parse = function() {
                     helper.log(phantom.addCookie(cookies[i]));
 
                 }
+
+            } else if (arg === "-json") {
+                
+                flags["json"] = true;
+                flags["silent"] = true;
 
             } else if (arg === "-sa") flags["sort-by"] |= 2;
             else if (arg === "-sd") flags["sort-by"] |= 4;

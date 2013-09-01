@@ -159,7 +159,7 @@ exports.onLoadFinished = function(status) {
             var datum = {}, res = data[i];
             datum["version"] = sniffed[i];
 
-            if (res === undefined) { datum["name"] = i; helper.log(i); }
+            if (res === undefined) { datum["name"] = i; }
             else datum["name"] = res["name"];
 
             snifferOutput.push(datum);
@@ -388,11 +388,13 @@ var callback = function(status) {
             "summary": summary,
             "redirects": redirects,
             "breakdown": breakdown,
-            "4xx-errors": errors["4xx"],
-            "5xx-errors": errors["5xx"],
-            "http-errors": errors["4xx"].concat(errors["5xx"]),
-            "js-errors": errors["js"],
-            "sniffer-output": snifferOutput
+            "errors": {
+                "4xx": errors["4xx"],
+                "5xx": errors["5xx"],
+                "http": errors["4xx"].concat(errors["5xx"]),
+                "js": errors["js"],
+            },
+            "sniffer": snifferOutput
         });
 
         if (flags["screenshot-path"].length > 0) {
