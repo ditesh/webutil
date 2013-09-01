@@ -32,7 +32,7 @@ Lots. Let's get relevant stats for Reddit:
     $ ./wush reddit.com
     webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
-    [Summary]
+    Summary
     Requests    33 request(s), 385103 bytes (376 KB), 0 redirect(s)
     Resources   HTML: 2, CSS: 1, JS: 4, images: 26, others: 0
                 UTF-8: 4, ISO-8859-1: 0, others: 0, not-specified: 29
@@ -84,10 +84,10 @@ Now, lets get a complete list of URL's accessed by the browser when loading up t
     $ ./wush -lu reddit.com
     webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
-    [Summary]
+    Summary
     ... snipped for brevity ...
 
-    [URLs]
+    URI's
     HTML  115084  http://www.reddit.com/
     JS    45830   http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js
     CSS   78617   http://www.redditstatic.com/reddit._E2WnMcei1o.css
@@ -99,10 +99,10 @@ Content type, resource size and resource URL is provided. Occasionally, we are o
     $ ./wush -lu -d reddit.com
     webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
-    [Summary]
+    Summary
     ... snipped for brevity ...
 
-    [URLs]
+    URI's
     HTML  110196  http://www.reddit.com/
     HTML  2108    http://www.reddit.com/api/request_promo
 
@@ -111,10 +111,10 @@ Whoops, clearly the URL list is wrong. As it turns out, reddit.com keeps its ass
     $ ./wush -u -dd reddit,media reddit.com
     webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
-    [Summary]
+    Summary
     ... snipped for brevity ...
 
-    [URLs]
+    URI's
     HTML  114590  http://www.reddit.com/
     CSS   78497   http://www.redditstatic.com/reddit._E2WnMcei1o.css
     JS    68817   http://www.redditstatic.com/reddit.en.yRpDmsrGWVQ.js
@@ -201,7 +201,7 @@ There is an inbuilt facility to provide the summary but with a primed cache. Thi
     $ ./wush reddit.com
     webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
-    [Summary]
+    Summary
     Requests    33 request(s), 385103 bytes (376 KB), 0 redirect(s)
     Resources   HTML: 2, CSS: 1, JS: 4, images: 26, others: 0
                 UTF-8: 4, ISO-8859-1: 0, others: 0, not-specified: 29
@@ -213,7 +213,7 @@ There is an inbuilt facility to provide the summary but with a primed cache. Thi
     $ ./wush -c 1 reddit.com
     webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
-    [Summary]
+    Summary
     Requests    14 request(s), 135463 bytes (132 KB), 0 redirect(s)
     Resources   HTML: 2, CSS: 0, JS: 1, images: 11, others: 0
                 UTF-8: 3, ISO-8859-1: 0, others: 0, not-specified: 11
@@ -239,7 +239,7 @@ The four parameters are clearly visible below under the Timing section:
     $ ./wush reddit.com
     webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
 
-    [Summary]
+    Summary
     Requests    33 request(s), 385103 bytes (376 KB), 0 redirect(s)
     Resources   HTML: 2, CSS: 1, JS: 4, images: 26, others: 0
                 UTF-8: 4, ISO-8859-1: 0, others: 0, not-specified: 29
