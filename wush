@@ -1,4 +1,23 @@
 #!/bin/bash
 
+if [[ "$@" == *"-repeat"* ]]; then
+
+    if [ $# -ne 3 ]; then
+
+        echo "ERROR: invalid parameters. Example of correct usage for -repeat is"
+        echo "       ./wush -repeat 10 reddit.com"
+
+    else
+
+        command -v python >/dev/null 2>&1 || { echo >&2 "I require python but it's not installed.  Aborting."; }
+        python tools/timing.py "$@"
+
+    fi
+
+    echo
+    exit;
+
+fi
+
 command -v phantomjs >/dev/null 2>&1 || { echo >&2 "I require phantomjs but it's not installed.  Aborting."; }
 phantomjs --disk-cache=no webutil.js $@;

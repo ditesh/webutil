@@ -73,9 +73,6 @@ exports.results = function(results) {
 
     }
 
-
-
-
     if (flags["print-breakdown"] === true) {
 
         if (flags["json"] === true) {
