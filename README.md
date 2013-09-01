@@ -40,7 +40,7 @@ Lots. Let's get relevant stats for Reddit:
     Timing      first byte: 291 ms, onDOMContentLoaded: 667 ms, onLoad: 2386 ms, fully loaded: 4390 ms
     Errors      4xx: 0, 5xx: 0, JS: 0
 
-As you can see, it provides a nicely formatted summary about the site highlighting key areas.
+As you can see, it provides a nicely formatted summary about the site highlighting key areas. Timing information, so often key to web developers, is covered in more detail below.
 
 ### Getting URL's
 
@@ -122,6 +122,41 @@ There is an inbuilt facility to provide the summary but with a primed cache. Thi
 When the `-c` parameter is passed, the page is reloaded the specified number of times. In the example above, the page is loaded once, and then reloaded one more time (reflecting the effect of passing `-c 1`).
 
 You can see the benefits of caching as the number of requests, page size etc drop. This is best used with `-d` or `-dd` to exclude third party resources.
+
+### Timing
+
+Timing information is important for web developers. `webutil` offers four parameters:
+
+* first byte: measurement of latency between request and first chunk of the first response
+* onDOMContentLoaded: fires when the page's DOM is fully constructed, but the referenced resources may not finish loading
+* onLoad: fires when the document loading completes
+* fully loaded: fires when there is no more network activity
+
+The four parameters are clearly visible below:
+
+    $ ./wush reddit.com
+    webutil.js 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
+
+    [Summary]
+    Requests    33 request(s), 385103 bytes (376 KB), 0 redirect(s)
+    Resources   HTML: 2, CSS: 1, JS: 4, images: 26, others: 0
+                UTF-8: 4, ISO-8859-1: 0, others: 0, not-specified: 29
+                compressed: 27, not-compressed: 6
+    *Timing      first byte: 291 ms, onDOMContentLoaded: 667 ms, onLoad: 2386 ms, fully loaded: 4390 ms*
+    Errors      4xx: 0, 5xx: 0, JS: 0
+
+There is an additional `python` based tool that will help execute multiple runs and provide average and standard deviation timing information. This is invoked transparently as follows:
+
+    $ ./wush -repeat 10 reddit.com
+    webutil 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
+    Executing 10 runs on reddit.com
+
+    First Byte:   mean 162.6ms, standard deviation: 30.45ms
+    DOMContentLoaded: mean 612.8ms, standard deviation: 32.29ms
+    On Load:    mean 1767.4ms, standard deviation: 109.02ms
+    Fully Loaded:   mean 3771.3ms, standard deviation: 109.0ms
+
+For reference, the python script is available in `tools/timing.py`
 
 ### Optimizing
 
