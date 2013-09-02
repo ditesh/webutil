@@ -292,7 +292,7 @@ exports.results = function(results) {
         }
     }
 
-    if (flags["print-redirects"] === true) {
+    if (flags["list-redirects"] === true) {
 
         if (flags["json"] === true) helper.log(results["redirects"]);
         else {

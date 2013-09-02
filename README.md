@@ -172,9 +172,9 @@ Listing resources by encryption status is easy as well:
     URI's (Not Encrypted)
     None
 
-### List resources by charset
+### Listing resources by charset
 
-Finally, to list resources by charset:
+To list resources by charset:
 
     $ ./wush -le https://news.ycombinator.com
     webutil 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
@@ -192,6 +192,20 @@ Finally, to list resources by charset:
         http://www.redditstatic.com/reddit.Ib1IJ_64tM4.css
         http://www.redditstatic.com/reddit-init.en.uiM-SGfQunU.js
         ... snipped for brevity ...
+
+### Listing redirects
+
+To list redirects:
+
+    $ ./wush -lr reddit.com
+    webutil 1.0.1 (c) 2012-2013 Ditesh Gathani <ditesh@gathani.org>
+
+    Summary
+    ... snipped for brevity ...
+
+    Redirects
+    302 http://reddit.com/  http://www.reddit.com/
+
 
 ### Primed Cache
 

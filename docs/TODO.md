@@ -21,3 +21,4 @@
 - [ ] Caching information
 - [ ] Cookie support
 - [ ] Spriting support
+- [ ] Add ability to post data
