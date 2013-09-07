@@ -16,6 +16,13 @@ webutil provides automatic website analysis for the savvy web developer. It help
     * screenshots
     * HAR file generation
 
+You can use it to:
+
+* quickly breakdown and get insights into existing websites
+* determine performance bottlenecks
+* optimize assets automatically
+* cron it and get notified when HTTP or JavaScript errors occur on your production websites
+
 webutil is a [phantomjs](http://phantomjs.org)-based tool.
 
 ## INSTALL
@@ -307,10 +314,12 @@ Pass `-json` for JSON-only output:
 
 ### Optimizing
 
-There is a bundled shell script that can automatically take the URL's and attempt to compress/minify CSS, JS or image assets.
+There are a couple bundled shell scripts that automatically downloads assets (CSS, JS, images), minifies CSS and JS, and optimizes all  images.
+
+The optimizer script optionally attempts to convert JPG's to PNG's, PNG's to JPG's and GIF's to PNG's to identify which generates the smallest filesize. This is a win if JPG's and GIF's are converted to PNG's but not necessarily so when PNG's are converted to JPG's (as you lose transparency capabilities).
 
     $ chmod a+x tools/downloader tools/optimizer
-    $ tools/downloader -dd reddit,media reddit.com
+    $ tools/downloader -dd klia www.klia.com.my
 
     Web Downloader Tool 1.0.1 (c) 2013 Ditesh Gathani <ditesh@gathani.org>
 
@@ -321,13 +330,14 @@ There is a bundled shell script that can automatically take the URL's and attemp
     Checking for CSS files ... found ... downloading ... done.
     Checking for JS files ... found ... downloading ... done.
 
-    # tools/optimizer
+    # Run the optimizer with conversion turned on
+    # tools/optimizer -convert
 
     Web Optimization Tool 1.0.1 (c) 2013 Ditesh Gathani <ditesh@gathani.org>
 
-    Checking for PNG files ... optimizing ... done.
-    Checking for JPEG files ... optimizing ... done.
-    Checking for GIF files ... optimizing ... done.
+    Checking for PNG files ... optimizing ... optimization completed, 1 file(s) converted ... done.
+    Checking for JPEG files ... optimizing ... optimization completed, 1 file(s) converted ... done.
+    Checking for GIF files ... optimizing ... optimization completed, 20 file(s) converted ... done.
     Checking for CSS files ... optimizing ... done.
     Checking for JS files ... optimizing ...done.
 
@@ -335,27 +345,56 @@ There is a bundled shell script that can automatically take the URL's and attemp
 
     ASSET  COUNT  AS-IS  OPTIMIZED  DIFF(KB)  DIFF(%)
     -----  -----  -----  ---------  --------  -------
-    GIF    2      5KB    5KB        0KB       0%
-    JPG    18     40KB   40KB       0KB       0%
-    PNG    6      50KB   46KB       4KB       8.00%
-    CSS    2      127KB  125KB      2KB       1.57%
-    JS     3      127KB  126KB      1KB       0.78%
-    TOTAL  31     349KB  342KB      7KB       2.00%
+    GIF    52     149KB  138KB      11KB      7.38%
+    JPG    11     248KB  231KB      17KB      6.85%
+    PNG    3      19KB   14KB       5KB       26.31%
+    CSS    6      52KB   41KB       11KB      21.15%
+    JS     15     221KB  159KB      62KB      28.05%
+    TOTAL  87     689KB  583KB      106KB     15.38%
 
-    AWS bandwidth savings: USD$ 1.26 per million visits
+    AWS bandwidth savings: USD$ 19.20 per million visits
 
     RESULTS (with gzip compression)
 
     RESOURCE  COUNT  AS-IS  OPTIMIZED  DIFF(KB)  DIFF(%)
     -----     -----  -----  ---------  --------  -------
-    GIF       2      5KB    5KB        0KB       0%
-    JPG       18     40KB   40KB       0KB       0%
-    PNG       6      49KB   46KB       3KB       6.12%
-    CSS       2      29KB   29KB       0KB       0%
-    JS        3      42KB   42KB       0KB       0%
-    TOTAL     31     165KB  162KB      3KB       1.81%
+    GIF       52     145KB  138KB      7KB       4.82%
+    JPG       11     227KB  218KB      9KB       3.96%
+    PNG       3      19KB   14KB       5KB       26.31%
+    CSS       6      13KB   11KB       2KB       15.38%
+    JS        15     70KB   53KB       17KB      24.28%
+    TOTAL     87     474KB  434KB      40KB      8.43%
 
-    AWS bandwidth savings: USD$ 0.54 per million visits
+    AWS bandwidth savings: USD$ 7.24 per million visits
+
+    # Run the optimizer with conversion turned off
+    # tools/optimizer
+
+    RESULTS (with no compression)
+
+    ASSET  COUNT  AS-IS  OPTIMIZED  DIFF(KB)  DIFF(%)
+    -----  -----  -----  ---------  --------  -------
+    GIF    52     149KB  149KB      0KB       0%
+    JPG    11     248KB  234KB      14KB      5.64%
+    PNG    3      19KB   16KB       3KB       15.78%
+    CSS    6      52KB   41KB       11KB      21.15%
+    JS     15     221KB  159KB      62KB      28.05%
+    TOTAL  87     689KB  599KB      90KB      13.06%
+
+    AWS bandwidth savings: USD$ 16.30 per million visits
+
+    RESULTS (with gzip compression)
+
+    RESOURCE  COUNT  AS-IS  OPTIMIZED  DIFF(KB)  DIFF(%)
+    -----     -----  -----  ---------  --------  -------
+    GIF       52     145KB  145KB      0KB       0%
+    JPG       11     227KB  220KB      7KB       3.08%
+    PNG       3      19KB   16KB       3KB       15.78%
+    CSS       6      13KB   11KB       2KB       15.38%
+    JS        15     70KB   53KB       17KB      24.28%
+    TOTAL     87     474KB  445KB      29KB      6.11%
+
+    AWS bandwidth savings: USD$ 5.25 per million visits
 
 A few things to note here:
 

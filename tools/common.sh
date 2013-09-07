@@ -25,8 +25,51 @@
 # Necessary global variables
 TMPDIR="/tmp/webutil"
 
+function converted {
+
+    if [ "$1" = "jpg" ]; then
+
+        if [ -f "$TMPDIR/jpg-to-png-files" ]; then
+
+            RETVAL=`wc -l "$TMPDIR/jpg-to-png-files" | awk '{print $1}'`
+            echo $RETVAL
+
+        else echo "0"
+        fi
+
+    elif [ "$1" = "png" ]; then
+
+        if [ -f "$TMPDIR/png-to-jpg-files" ]; then
+
+            RETVAL=`wc -l "$TMPDIR/png-to-jpg-files" | awk '{print $1}'`
+            echo $RETVAL
+
+        else echo "0"
+        fi
+
+    elif [ "$1" = "gif" ]; then
+
+        if [ -f "$TMPDIR/gif-to-png-files" ]; then
+
+            RETVAL=`wc -l "$TMPDIR/gif-to-png-files" | awk '{print $1}'`
+            echo $RETVAL
+
+        else echo "0"
+        fi
+
+    else
+        echo "0"
+    fi
+
+}
+
 function size {
-    echo $(ls -l "$1" | awk '{print $5}');
+
+    if [ -f "$1" ]; then
+        echo $(ls -l "$1" | awk '{print $5}');
+    else
+        echo "0"
+    fi
 }
 
 function download {

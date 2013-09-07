@@ -40,11 +40,22 @@ types=( png jpg gif css js )
 for i in "${types[@]}"; do
     rm -rf "$TMPDIR/$i/post-processed"
     rm -rf "$TMPDIR/$i/post-processed-gzip"
-    mkdir -p "$TMPDIR/$i/post-processed" "$TMPDIR/$i/post-processed-gzip" 
+    rm -rf "$TMPDIR/tmp"
+    mkdir -p "$TMPDIR/$i/post-processed" "$TMPDIR/$i/post-processed-gzip"
 done
 
+# Setup folders correctly
 
-rm -f $TMPDIR/modified-files
+rm -rf "$TMPDIR/jpg-to-png-files"
+rm -rf "$TMPDIR/gif-to-png-files"
+rm -rf "$TMPDIR/png-to-jpg-files"
+mkdir -p "$TMPDIR/tmp"
+
+# Check if conversions are required
+
+if [ "$1" == "-convert" ]; then
+    CONVERT=true
+fi
 
 JS=false
 GIF=false
@@ -59,7 +70,43 @@ echo -n "Checking for PNG files ... "
 if [ -f "$TMPDIR/png-files" ]; then
 
     echo -n "optimizing ... "
-    optipng -quiet -o 9 -dir $TMPDIR/png/post-processed $TMPDIR/png/pre-processed/*
+
+    for i in `ls $TMPDIR/png/pre-processed/*`; do
+
+        i=`echo $i | xargs -0 -n1 basename`
+
+        # 1. Optimize the PNG
+        RETVAL=`optipng -o 9 -out "$TMPDIR/tmp/$i" "$TMPDIR/png/pre-processed/$i"`
+        PNGSIZE=$(size "$TMPDIR/tmp/$i")
+
+        if [ -z $CONVERT ]; then
+
+            cp "$TMPDIR/tmp/$i" "$TMPDIR/png/post-processed/$i"
+            continue
+
+        fi
+
+        # 2. Convert the PNG to JPG
+        RETVAL=`convert "$TMPDIR/tmp/$i" "$TMPDIR/tmp/$i.jpg"`
+
+        # Optimize the JPG
+        RETVAL=`jpegtran -optimize -copy none "$TMPDIR/tmp/$i.jpg" > "$TMPDIR/tmp/$i.optimized.jpg"`
+        JPGSIZE=$(size "$TMPDIR/tmp/$i.jpg")
+
+        if [ $PNGSIZE -gt $JPGSIZE ]; then
+
+            echo "$i" >> "$TMPDIR/png-to-jpg-files"
+            cp "$TMPDIR/tmp/$i.optimized.jpg" "$TMPDIR/png/post-processed/$i.jpg"
+
+        else
+            cp "$TMPDIR/tmp/$i" "$TMPDIR/png/post-processed/$i"
+        fi
+
+    done
+
+    echo -n "optimization completed, "
+    echo -n $(converted png)
+    echo -n " file(s) converted ... "
     echo "done."
 
     post_processing png
@@ -83,12 +130,43 @@ echo -n "Checking for JPEG files ... "
 if [ -f "$TMPDIR/jpg-files" ]; then
 
     echo -n "optimizing ... "
+
     for i in `ls $TMPDIR/jpg/pre-processed/*`; do
 
         i=`echo $i | xargs -0 -n1 basename`
-        jpegtran -optimize -copy none "$TMPDIR/jpg/pre-processed/$i" > "$TMPDIR/jpg/post-processed/$i";
+
+        # 1. Optimize the JPG
+        RETVAL=`jpegtran -optimize -copy none "$TMPDIR/jpg/pre-processed/$i" > "$TMPDIR/tmp/$i"`
+        JPGSIZE=$(size "$TMPDIR/tmp/$i")
+
+        if [ -z $CONVERT ]; then
+
+            cp "$TMPDIR/tmp/$i" "$TMPDIR/jpg/post-processed/$i"
+            continue
+
+        fi
+
+        # 2. Convert the JPG to PNG
+        RETVAL=`convert "$TMPDIR/tmp/$i" "$TMPDIR/tmp/$i.png"`
+
+        # Optimize the PNG
+        RETVAL=`optipng -o 9 -out "$TMPDIR/tmp/$i.optimized.png" "$TMPDIR/tmp/$i.png"`
+        PNGSIZE=$(size "$TMPDIR/tmp/$i.png")
+
+        if [ $JPGSIZE -gt $PNGSIZE ]; then
+
+            echo "$i" >> "$TMPDIR/jpg-to-png-files"
+            cp "$TMPDIR/tmp/$i.optimized.png" "$TMPDIR/jpg/post-processed/$i.png"
+
+        else
+            cp "$TMPDIR/tmp/$i" "$TMPDIR/jpg/post-processed/$i"
+        fi
 
     done
+
+    echo -n "optimization completed, "
+    echo -n $(converted jpg)
+    echo -n " file(s) converted ... "
     echo "done."
 
     post_processing jpg
@@ -112,19 +190,31 @@ echo -n "Checking for GIF files ... "
 if [ -f "$TMPDIR/gif-files" ]; then
 
     echo -n "optimizing ... "
-    for i in `ls $TMPDIR/gif/pre-processed/*`; do
 
-        i=`echo $i | xargs -0 -n1 basename`
-        RETVAL=`optipng -o 9 -out "$TMPDIR/gif/post-processed/$i.png" "$TMPDIR/gif/pre-processed/$i"`
+    if [ -d $CONVERT ]; then
 
-        if [[ "$?" -ne "0" || $(echo $RETVAL | grep "increase") ]]; then
+        cp $TMPDIR/gif/pre-processed/* $TMPDIR/gif/post-processed
 
-            rm -f "$TMPDIR/gif/post-processed/$i.png"
-            cp "$TMPDIR/gif/pre-processed/$i" "$TMPDIR/gif/post-processed/$i"
+    else 
+        for i in `ls $TMPDIR/gif/pre-processed/*`; do
 
-        fi
+            i=`echo $i | xargs -0 -n1 basename`
+            RETVAL=`optipng -o 9 -out "$TMPDIR/gif/post-processed/$i.png" "$TMPDIR/gif/pre-processed/$i"`
 
-    done
+            if [[ "$?" -ne "0" || $(echo $RETVAL | grep "increase") ]]; then
+
+                rm -f "$TMPDIR/gif/post-processed/$i.png"
+                cp "$TMPDIR/gif/pre-processed/$i" "$TMPDIR/gif/post-processed/$i"
+
+            else
+                echo "$i" >> "$TMPDIR/gif-to-png-files"
+            fi
+        done
+    fi
+
+    echo -n "optimization completed, "
+    echo -n $(converted gif)
+    echo -n " file(s) converted ... "
     echo "done."
 
     post_processing gif
@@ -184,7 +274,13 @@ if [ -f "$TMPDIR/js-files" ]; then
 
         # Hack for uglify compression dropping the entire file
         if [ $(size "$TMPDIR/js/post-processed/$i") -eq 0 ]; then
+
             uglifyjs "$TMPDIR/js/pre-processed/$i" -o "$TMPDIR/js/post-processed/$i" > /dev/null  2>&1
+
+            # If it still fails, just copy the original file over
+            if [ $(size "$TMPDIR/js/post-processed/$i") -eq 0 ]; then
+                cp "$TMPDIR/js/pre-processed/$i" "$TMPDIR/js/post-processed/"
+            fi
         fi
 
     done
