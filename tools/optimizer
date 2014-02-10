@@ -27,6 +27,7 @@
 command -v csstidy >/dev/null 2>&1 || { echo >&2 "I require csstidy but it's not installed.  Aborting."; }
 command -v optipng >/dev/null 2>&1 || { echo >&2 "I require optipng but it's not installed.  Aborting."; }
 command -v uglifyjs >/dev/null 2>&1 || { echo >&2 "I require uglifyjs but it's not installed.  Aborting."; }
+command -v identify >/dev/null 2>&1 || { echo >&2 "I require identify but it's not installed.  Aborting."; }
 command -v phantomjs >/dev/null 2>&1 || { echo >&2 "I require phantomjs but it's not installed.  Aborting."; }
 
 # Let's set up the support functions first
@@ -79,7 +80,9 @@ if [ -f "$TMPDIR/png-files" ]; then
         RETVAL=`optipng -o 9 -out "$TMPDIR/tmp/$i" "$TMPDIR/png/pre-processed/$i"`
         PNGSIZE=$(size "$TMPDIR/tmp/$i")
 
-        if [ -z $CONVERT ]; then
+        RETVAL=`identify -format %A $TMPDIR/tmp/$i`
+
+        if [ "$RETVAL" = "True" ] || [ -z $CONVERT ] ; then
 
             cp "$TMPDIR/tmp/$i" "$TMPDIR/png/post-processed/$i"
             continue
